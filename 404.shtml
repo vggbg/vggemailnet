@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Page Not Found Error 404</title>
+    <link href="https://fonts.googleapis.com/css2?family=Arsenal&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arsenal', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #1a1a2e;
+            position: relative;
+            text-align: center;
+            background: #f8f9fe;
+        }
+
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f0ecff 0%, #e8f4f8 30%, #fef9ef 60%, #f0ecff 100%);
+            animation: gentle-shift 12s ease-in-out infinite alternate;
+            z-index: -3;
+            opacity: 0.7;
+        }
+
+        @keyframes gentle-shift {
+            0% {
+                background-position: 0% 50%;
+                filter: brightness(1);
+            }
+            100% {
+                background-position: 100% 50%;
+                filter: brightness(1.05);
+            }
+        }
+
+        .text-container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            padding: 35px 40px 40px 40px;
+            background-color: rgba(255, 255, 255, 0.88);
+            border-radius: 28px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.06), 0 5px 20px rgba(0, 0, 0, 0.03);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: box-shadow 0.4s ease;
+        }
+
+        .text-container:hover {
+            box-shadow: 0 20px 60px rgba(142, 68, 173, 0.08), 0 5px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .time-message {
+            font-size: 2.4rem;
+            font-weight: 400;
+            margin: 35px 0 28px 0;
+            position: relative;
+            letter-spacing: 0.3px;
+            color: #2d1b4e;
+            animation: glitch-text 5s infinite linear alternate-reverse;
+            line-height: 1.4;
+            padding: 0 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes glitch-text {
+            0%, 100% { transform: translate(0); opacity: 1; }
+            2% { transform: translate(-0.5px, 0.5px); }
+            4% { transform: translate(0.5px, -0.5px); }
+            6% { transform: translate(-0.5px, -0.5px); }
+            8% { transform: translate(0.5px, 0.5px); }
+            10% { transform: translate(-0.5px, 0.5px); }
+            12% { transform: translate(0.5px, -0.5px); }
+            14% { transform: translate(-0.5px, -0.5px); }
+            16% { transform: translate(0.5px, 0.5px); }
+            18% { transform: translate(-0.5px, 0.5px); }
+        }
+
+        .error-number {
+            font-size: 12rem;
+            font-weight: 700;
+            margin: 5px 0 0 0;
+            text-shadow: 0 2px 30px rgba(142, 68, 173, 0.12), 0 0 60px rgba(142, 68, 173, 0.05);
+            animation: pulse 2.5s ease-in-out infinite, float 7s ease-in-out infinite;
+            color: #2d1b4e;
+            position: relative;
+            display: inline-block;
+            line-height: 1;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.85; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.03); }
+            100% { opacity: 0.85; transform: scale(1); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-14px) rotate(0.5deg); }
+        }
+
+        .interactive-dots {
+            display: flex;
+            justify-content: center;
+            margin: 35px 0 25px 0;
+            gap: 30px;
+            cursor: pointer;
+        }
+
+        .dot {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            position: relative;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 2px solid rgba(255,255,255,0.6);
+            cursor: pointer;
+        }
+
+        .dot.purple { 
+            background: linear-gradient(135deg, #8e44ad, #a569bd); 
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.25); 
+        }
+        .dot.red { 
+            background: linear-gradient(135deg, #e74c3c, #ec7063); 
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.25); 
+        }
+        .dot.orange { 
+            background: linear-gradient(135deg, #f39c12, #f7b731); 
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.25); 
+        }
+        .dot.cyan { 
+            background: linear-gradient(135deg, #0de6fc, #4ef0ff); 
+            box-shadow: 0 4px 15px rgba(13, 230, 252, 0.25); 
+        }
+
+        .dot:hover {
+            transform: scale(1.25) rotate(8deg);
+            box-shadow: 0 8px 30px;
+        }
+
+        .connected {
+            animation: connect 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes connect {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.5) rotate(10deg); }
+            60% { transform: scale(0.9) rotate(-5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.9);
+            font-family: "Arsenal", sans-serif;
+            font-size: 14px;
+            color: #2d1b4e;
+            text-align: center;
+            padding-top: 13px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .footer a {
+            color: #2d1b4e;
+            text-decoration: none;
+            margin: 0 18px;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .footer a:hover {
+            color: #8e44ad;
+            opacity: 1;
+            text-shadow: 0 0 20px rgba(142, 68, 173, 0.15);
+        }
+
+        .footer a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background: linear-gradient(90deg, #8e44ad, #a569bd);
+            transition: width 0.35s ease;
+        }
+
+        .footer a:hover::after {
+            width: 100%;
+        }
+
+        .easter-egg-activated .text-container {
+            animation: rainbow-border 2s infinite;
+        }
+
+        @keyframes rainbow-border {
+            0% { box-shadow: 0 0 50px rgba(255, 0, 255, 0.15); }
+            25% { box-shadow: 0 0 50px rgba(0, 255, 255, 0.15); }
+            50% { box-shadow: 0 0 50px rgba(255, 153, 0, 0.15); }
+            75% { box-shadow: 0 0 50px rgba(142, 68, 173, 0.15); }
+            100% { box-shadow: 0 0 50px rgba(255, 0, 255, 0.15); }
+        }
+
+        #interactive-message {
+            transition: all 0.4s ease;
+            font-weight: 400;
+        }
+
+        @media (max-width: 768px) {
+            .error-number { font-size: 8rem; }
+            .time-message { 
+                font-size: 1.8rem; 
+                min-height: 60px;
+                padding: 0 15px;
+            }
+            .text-container { 
+                max-width: 94%; 
+                padding: 25px 20px 30px 20px;
+                margin: 0 10px;
+            }
+            .dot { width: 32px; height: 32px; }
+            .interactive-dots { gap: 22px; margin: 30px 0 20px 0; }
+            .footer { height: 52px; padding-top: 16px; font-size: 13px; }
+            .footer a { display: inline-block; margin: 4px 12px; }
+        }
+
+        @media (max-width: 480px) {
+            .error-number { font-size: 5.5rem; }
+            .time-message { 
+                font-size: 1.4rem; 
+                min-height: 50px;
+                padding: 0 10px;
+                line-height: 1.3;
+            }
+            .text-container { 
+                max-width: 96%; 
+                padding: 20px 15px 25px 15px;
+                margin: 0 8px;
+                border-radius: 20px;
+            }
+            .interactive-dots { gap: 16px; margin: 25px 0 18px 0; }
+            .dot { width: 28px; height: 28px; }
+            .footer a { margin: 3px 8px; font-size: 12px; }
+        }
+
+        @media (max-width: 360px) {
+            .time-message { 
+                font-size: 1.2rem; 
+                min-height: 42px;
+            }
+            .error-number { font-size: 4.5rem; }
+            .text-container { padding: 16px 12px 20px 12px; }
+            .dot { width: 24px; height: 24px; }
+            .interactive-dots { gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div class="background"></div>
+
+    <div class="text-container">
+        <div class="error-number">404</div>
+        
+        <div class="time-message" id="time-message"></div>
+
+        <div class="interactive-dots" id="interactive-dots">
+            <div class="dot purple" data-color="purple"></div>
+            <div class="dot red" data-color="red"></div>
+            <div class="dot orange" data-color="orange"></div>
+            <div class="dot cyan" data-color="cyan"></div>
+        </div>
+        
+        <div id="interactive-message" style="margin-top: 20px; font-size: 1.2rem; opacity: 0.85; min-height: 30px; color: #4a4a6a;">
+            <!-- Инструкция за точките -->
+        </div>
+    </div>
+
+    <div class="footer">
+        <a href="https://forms.zohopublic.com/virtualoffice6913/form/ContactForm1/formperma/bJ2K6HfG3130MM7bMkB628053" 
+           target="_blank" onclick="zforms_open_window(this.href, 660, 700); return false;">
+           <i class="fas fa-envelope"></i> контактна форма
+        </a>
+        | 
+        <a href="https://1246.3cx.cloud/home1" target="_blank">
+           <i class="fas fa-comments"></i> съобщение/обаждане
+        </a> 
+        | 
+        <a href="https://t.me/+7_XRl0bzOYFlMWVk" target="_blank">
+           <i class="fab fa-telegram"></i> telegram
+        </a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS("particles-js", {
+                particles: {
+                    number: { value: 50, density: { enable: true, value_area: 800 } },
+                    color: { value: ["#8e44ad", "#e74c3c", "#f39c12", "#0de6fc", "#35aeff"] },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.4, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: "#8e44ad",
+                        opacity: 0.12,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 1.5,
+                        direction: "none",
+                        random: true,
+                        straight: false,
+                        out_mode: "out",
+                        bounce: false
+                    }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" }
+                    }
+                },
+                retina_detect: true
+            });
+
+            setMessageByTime();
+            setupInteractiveDots();
+            setupEasterEgg();
+        });
+
+        function setMessageByTime() {
+            const hour = new Date().getHours();
+            const messageElement = document.getElementById('time-message');
+            
+            const userLang = navigator.language || navigator.userLanguage;
+            const langCode = userLang.substring(0, 2).toLowerCase();
+            const isChinese = userLang.includes('zh') || langCode === 'zh';
+            
+            let currentLang = 'en';
+            if (langCode === 'bg') currentLang = 'bg';
+            else if (langCode === 'ru') currentLang = 'ru';
+            else if (isChinese) currentLang = 'zh';
+            
+            const timeMessages = {
+                bg: {
+                    night: "🌙 Дори в полумрака не можем да намерим търсената страница...",
+                    morning: "☕ Страницата все още не е пила кафе...",
+                    afternoon: "🔍 Страницата изчезна в мрежата...",
+                    evening: "🌟 Дори звездите не могат да открият търсената страница..."
+                },
+                en: {
+                    night: "🌙 Even in the darkness we can't find the page you're looking for...",
+                    morning: "☕ The page hasn't had coffee yet...",
+                    afternoon: "🔍 The page vanished into the network...",
+                    evening: "🌟 Even the stars can't locate the page you're looking for..."
+                },
+                ru: {
+                    night: "🌙 Даже в темноте мы не можем найти искомую страницу...",
+                    morning: "☕ Страница ещё не пила кофе...",
+                    afternoon: "🔍 Страница исчезла в сети...",
+                    evening: "🌟 Даже звёзды не могут найти искомую страницу..."
+                },
+                zh: {
+                    night: "🌙 即使在黑暗中我们也找不到您要找的页面...",
+                    morning: "☕ 页面还没喝咖啡...",
+                    afternoon: "🔍 页面消失在网络中...",
+                    evening: "🌟 连星星都找不到您要找的页面..."
+                }
+            };
+            
+            let timeOfDay = 'afternoon';
+            
+            if (hour >= 0 && hour < 6) timeOfDay = 'night';
+            else if (hour >= 6 && hour < 12) timeOfDay = 'morning';
+            else if (hour >= 12 && hour < 18) timeOfDay = 'afternoon';
+            else timeOfDay = 'evening';
+            
+            messageElement.textContent = timeMessages[currentLang][timeOfDay];
+        }
+
+        function setupInteractiveDots() {
+            const dots = document.querySelectorAll('.dot');
+            const messageElement = document.getElementById('interactive-message');
+            let connectedCount = 0;
+            
+            const userLang = navigator.language || navigator.userLanguage;
+            const langCode = userLang.substring(0, 2).toLowerCase();
+            const isChinese = userLang.includes('zh') || langCode === 'zh';
+            
+            let currentLang = 'en';
+            if (langCode === 'bg') currentLang = 'bg';
+            else if (langCode === 'ru') currentLang = 'ru';
+            else if (isChinese) currentLang = 'zh';
+            
+            const interactiveMessages = {
+                bg: {
+                    start: "🌸 Цъкни върху точките, за да ги свържеш",
+                    progress1: "✨ Продължавай! Свържи всички точки...",
+                    progress2: "🌟 Още една... почти готово!",
+                    progress3: "🎯 Последна точка! Цъкни!",
+                    complete: "✅ Всички точки са свързани! Но страницата все още липсва..."
+                },
+                en: {
+                    start: "🌸 Click on the dots to connect them",
+                    progress1: "✨ Keep going! Connect all dots...",
+                    progress2: "🌟 One more... almost there!",
+                    progress3: "🎯 Last dot! Click it!",
+                    complete: "✅ All dots connected! But the page is still missing..."
+                },
+                ru: {
+                    start: "🌸 Нажмите на точки, чтобы соединить их",
+                    progress1: "✨ Продолжайте! Соедините все точки...",
+                    progress2: "🌟 Еще одна... почти готово!",
+                    progress3: "🎯 Последняя точка! Нажмите!",
+                    complete: "✅ Все точки соединены! Но страница всё ещё отсутствует..."
+                },
+                zh: {
+                    start: "🌸 点击圆点以连接它们",
+                    progress1: "✨ 继续！连接所有圆点...",
+                    progress2: "🌟 还有一个... 快完成了！",
+                    progress3: "🎯 最后一个点！点击它！",
+                    complete: "✅ 所有圆点已连接！但页面仍然丢失..."
+                }
+            };
+            
+            messageElement.textContent = interactiveMessages[currentLang].start;
+            
+            dots.forEach(dot => {
+                dot.addEventListener('click', function() {
+                    if (!this.classList.contains('connected')) {
+                        this.classList.add('connected');
+                        connectedCount++;
+                        
+                        const color = this.getAttribute('data-color');
+                        this.style.boxShadow = `0 0 40px ${getColorHex(color)}, 0 0 80px ${getColorHex(color)}40`;
+                        
+                        if (connectedCount === 1) {
+                            messageElement.textContent = interactiveMessages[currentLang].progress1;
+                            messageElement.style.color = getColorHex(color);
+                        } else if (connectedCount === 2) {
+                            messageElement.textContent = interactiveMessages[currentLang].progress2;
+                            messageElement.style.color = '#f39c12';
+                        } else if (connectedCount === 3) {
+                            messageElement.textContent = interactiveMessages[currentLang].progress3;
+                            messageElement.style.color = '#e74c3c';
+                        } else if (connectedCount === 4) {
+                            messageElement.textContent = interactiveMessages[currentLang].complete;
+                            messageElement.style.color = '#8e44ad';
+                            messageElement.style.textShadow = '0 0 20px rgba(142, 68, 173, 0.15)';
+                            
+                            setTimeout(() => {
+                                document.querySelector('.text-container').style.animation = 'rainbow-border 1s 3';
+                            }, 300);
+                        }
+                    }
+                });
+            });
+            
+            function getColorHex(colorName) {
+                const colors = {
+                    purple: '#8e44ad',
+                    red: '#e74c3c',
+                    orange: '#f39c12',
+                    cyan: '#0de6fc'
+                };
+                return colors[colorName] || '#4a4a6a';
+            }
+        }
+
+        function setupEasterEgg() {
+            console.log(`%c🔍 [404 Easter Egg]`, 'color: #8e44ad; font-size: 16px; font-weight: bold;');
+            console.log(`%c💡 Напиши 'help' или '404' в конзолата за изненада!`, 'color: #f39c12;');
+            
+            const originalConsoleLog = console.log;
+            
+            console.log = function(...args) {
+                const input = args[0];
+                
+                if (typeof input === 'string' && (input.toLowerCase().includes('help') || input.includes('404'))) {
+                    document.body.classList.add('easter-egg-activated');
+                    
+                    const messageElement = document.getElementById('interactive-message');
+                    messageElement.innerHTML = "🎉 ЧЕСТИТО! Откри таен портал! Интересен факт: Първата 404 грешка е документирана през 1992 г. от Тим Бърнърс-Лий, създателят на WWW.";
+                    messageElement.style.color = "#8e44ad";
+                    messageElement.style.textShadow = "0 0 30px rgba(142, 68, 173, 0.2)";
+                    
+                    const errorNumber = document.querySelector('.error-number');
+                    errorNumber.style.animation = "pulse 0.6s ease-in-out infinite, float 3s ease-in-out infinite";
+                    
+                    originalConsoleLog.apply(console, [
+                        `%c\n╔══════════════════════════════════════════╗\n║         🎉 EASTER EGG АКТИВИРАН!         ║\n║   Първата 404 грешка в историята е       ║\n║   документирана през 1992 г. от          ║\n║   Тим Бърнърс-Лий, създателят на WWW.    ║\n╚══════════════════════════════════════════╝\n`,
+                        'color: #8e44ad; font-weight: bold; font-size: 14px;'
+                    ]);
+                    
+                    setTimeout(() => {
+                        document.body.classList.remove('easter-egg-activated');
+                        messageElement.innerHTML = "✨ Ефектът изчезна. Опитай пак с друга команда!";
+                        messageElement.style.color = "#4a4a6a";
+                        messageElement.style.textShadow = "none";
+                        errorNumber.style.animation = "pulse 2.5s ease-in-out infinite, float 7s ease-in-out infinite";
+                    }, 10000);
+                    
+                    return;
+                }
+                
+                originalConsoleLog.apply(console, args);
+            };
+        }
+
+        function zforms_open_window(url, height, width) {
+            var leftPos = 0;
+            var topPos = 0;
+            if (screen) {
+                leftPos = (screen.width - width) / 2;
+                topPos = (screen.height - height) / 2;
+                window.open(url, null, "width=" + width + ",height=" + height + ",left=" + leftPos + ",top=" + topPos + ", toolbar=0, location=0, status=1, scrollbars=1, resizable=1");
+            }
+        }
+    </script>
+    
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"9a7c6429ef01c9c4","version":"2025.9.1","r":1,"token":"27c14415f8664bc399250fac7f8899ea","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}}}' crossorigin="anonymous"></script>
+
+    <call-us-selector phonesystem-url="https://1246.3cx.cloud" party="LiveChat826231"></call-us-selector>
+    <script defer src="https://downloads-global.3cx.com/downloads/livechatandtalk/v1/callus.js" id="tcx-callus-js" charset="utf-8"></script>
+
+</body>
+</html>

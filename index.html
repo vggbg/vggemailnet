@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="bg">
+   <head>
+      <meta charset="utf-8" />
+      <title>vggemail.net</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <link href="https://fonts.googleapis.com/css?family=Arsenal&amp;subset=latin,cyrillic-ext" rel="stylesheet" type="text/css" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+      <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+      <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+      <link rel="manifest" href="/site.webmanifest" />
+      <style>
+         body:before,
+         body:after {
+         content: "";
+         position: fixed;
+         left: 0;
+         width: 100%;
+         height: 10px;
+         -webkit-box-shadow: 0px 0px 10px #424242;
+         -moz-box-shadow: 0px 0px 10px #424242;
+         box-shadow: 0px 0px 10px rgba(66, 66, 66, 0.5);
+         z-index: 100;
+         }
+         body:before {
+         top: -10px;
+         }
+         body:after {
+         bottom: -10px;
+         }
+         body {
+         font-family: "Arsenal", sans-serif;
+         font-size: 100.01%;
+         color: #424242;
+         background-color: #ffffff;
+         display: flex;
+         flex-direction: column;
+         justify-content: flex-start;
+         align-items: center;
+         min-height: 100vh;
+         margin: 0;
+         padding-top: 80px;
+         padding-bottom: 70px;
+         position: relative;
+         }
+         .logo-container {
+         margin-bottom: 30px;
+         }
+         .login-container {
+         background-color: #fff;
+         padding: 30px;
+         border-radius: 6px;
+         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+         width: 300px;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         position: relative;
+         z-index: 1;
+         }
+         .login td {
+         padding: 8px;
+         }
+         .login input[type="text"],
+         .login input[type="password"] {
+         width: 100%;
+         padding: 5px;
+         border: 1px solid #ccc;
+         border-radius: 4px;
+         box-sizing: border-box;
+         font-size: 14px;
+         font-family: "Arsenal", sans-serif;
+         box-shadow: 0 0 5px rgba(53, 174, 255, 0.5);
+         }
+         .login input[type="text"]:focus,
+         .login input[type="password"]:focus {
+         font-family: "Arsenal", sans-serif;
+         box-shadow: 0 0 10px rgba(234, 87, 55, 0.8);
+         outline: 1px solid #ea5737;
+         }
+         .input-button {
+         padding: 8px 25px;
+         background-color: #ea5737;
+         color: #fff;
+         border: none;
+         border-radius: 6px;
+         cursor: pointer;
+         font-size: 14px;
+         width: 100%;
+         margin-top: 10px;
+         }
+         .input-button:hover {
+         background-color: #ff5733;
+         }
+         #location-input {
+         font-family: "Arsenal", sans-serif;
+         }
+         /* ===== МОДАЛ ЗА КОНТАКТНА ФОРМА ===== */
+         .modal-overlay {
+         display: none;
+         position: fixed;
+         inset: 0;
+         background: rgba(0,0,0,0.35);
+         backdrop-filter: blur(4px);
+         -webkit-backdrop-filter: blur(4px);
+         justify-content: center;
+         align-items: center;
+         z-index: 9999;
+         padding: 16px;
+         }
+         .modal-overlay.active {
+         display: flex;
+         }
+         .modal {
+         background: #fff;
+         max-width: 520px;
+         width: 100%;
+         border-radius: 28px;
+         padding: 24px 24px 28px;
+         box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+         animation: modalFade 0.25s;
+         max-height: 92vh;
+         overflow-y: auto;
+         }
+         @keyframes modalFade {
+         from { opacity: 0; transform: scale(0.95); }
+         to { opacity: 1; transform: scale(1); }
+         }
+         .modal.contact-modal {
+         max-width: 750px;
+         }
+         .contact-modal iframe {
+         width: 660px;
+         height: 700px;
+         max-width: 100%;
+         border: none;
+         border-radius: 12px;
+         background: #fff;
+         }
+         .contact-modal .modal-actions {
+         margin-top: 16px;
+         }
+         .modal h2 {
+         font-size: 1.4rem;
+         font-weight: 600;
+         margin-bottom: 20px;
+         color: #1e2b37;
+         text-align: left;
+         font-family: "Arsenal", sans-serif;
+         }
+         .modal-actions {
+         display: flex;
+         gap: 10px;
+         justify-content: flex-end;
+         margin-top: 24px;
+         flex-wrap: wrap;
+         }
+         .modal .btn {
+         padding: 10px 24px;
+         border: none;
+         border-radius: 40px;
+         font-weight: 600;
+         font-size: 0.9rem;
+         cursor: pointer;
+         transition: 0.2s;
+         font-family: "Arsenal", sans-serif;
+         }
+         .btn-outline {
+         background: transparent;
+         border: 1px solid #d0d9df;
+         color: #1e2b37;
+         }
+         .btn-outline:hover {
+         background: #e9edf0;
+         }
+         .btn-primary {
+         background: #ea5737;
+         color: white;
+         box-shadow: 0 4px 10px rgba(234,87,55,0.25);
+         }
+         .btn-primary:hover {
+         background: #d35400;
+         }
+         .footer {
+         position: fixed;
+         left: 0;
+         bottom: 0;
+         width: 100%;
+         height: 40px;
+         background-color: #f8f9fa;
+         font-family: "Arsenal", sans-serif;
+         font-size: 14px;
+         color: #424242;
+         text-align: center;
+         padding-top: 10px;
+         border-top: 1px solid #dee2e6;
+         box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+         padding: 10px 0;
+         z-index: 99;
+         }
+         .footer a {
+         color: #007bff;
+         text-decoration: none;
+         margin: 0 10px;
+         }
+         .footer a:hover {
+         text-decoration: underline;
+         }
+         .email-label,
+         .password-label {
+         color: #424242;
+         }
+         .red-star {
+         color: red;
+         }
+         .statcounter {
+         display: none;
+         }
+         /* ===== УИДЖЕТ ЗА ВРЕМЕ ===== */
+         #weather-widget {
+         position: fixed;
+         background-color: #ffffff;
+         border-radius: 12px;
+         padding: 15px;
+         cursor: move;
+         resize: both;
+         overflow: hidden;
+         z-index: 100;
+         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 
+                     0 8px 40px rgba(0, 0, 0, 0.10);
+         transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+         }
+         #weather-widget:hover {
+         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25), 
+                     0 12px 50px rgba(0, 0, 0, 0.20);
+         }
+         #weather-widget #weather-content {
+         text-align: center;
+         position: relative;
+         }
+         #weather-widget #close-widget {
+         position: absolute;
+         top: 5px;
+         right: 5px;
+         border: none;
+         background-color: transparent;
+         cursor: pointer;
+         font-size: 18px;
+         }
+         #weather-widget #weather-animation {
+         font-size: 50px;
+         width: 150px;
+         height: auto;
+         margin: 10px auto;
+         }
+         #weather-widget h3 {
+         margin: 5px 0;
+         font-size: 18px;
+         color: #333;
+         }
+         #weather-widget p {
+         margin: 5px 0;
+         font-size: 14px;
+         color: #555;
+         }
+         /* ===== СТИЛ ЗА КАРТИНКАТА - САМО КАРТИНКА ===== */
+         .login-icon {
+         display: inline-block;
+         margin-top: 20px;
+         }
+         .login-icon img {
+         display: block;
+         width: 128px;
+         height: 128px;
+         }
+         @media (max-width: 768px) {
+         body {
+         padding-top: 40px;
+         padding-bottom: 80px;
+         }
+         .login-container {
+         padding: 20px;
+         width: 280px;
+         }
+         .login input[type="text"],
+         .login input[type="password"] {
+         font-size: 16px;
+         padding: 10px;
+         }
+         .input-button {
+         padding: 12px 20px;
+         font-size: 13px;
+         min-height: 44px;
+         }
+         #weather-widget {
+         width: 260px !important;
+         max-width: 90vw !important;
+         padding: 12px !important;
+         }
+         #weather-widget h3 {
+         font-size: 16px !important;
+         }
+         #weather-widget #weather-animation {
+         font-size: 40px !important;
+         width: auto !important;
+         }
+         #weather-widget p {
+         font-size: 13px !important;
+         }
+         #weather-widget #close-widget {
+         font-size: 20px !important;
+         padding: 4px !important;
+         min-width: 36px !important;
+         min-height: 36px !important;
+         }
+         .login-icon img {
+         width: 100px !important;
+         height: 100px !important;
+         }
+         .footer {
+         font-size: 12px;
+         height: auto;
+         padding: 8px 5px;
+         }
+         .footer a {
+         margin: 0 5px;
+         }
+         .modal.contact-modal {
+         max-width: 95%;
+         margin: 10px;
+         }
+         .contact-modal iframe {
+         height: 500px;
+         }
+         .modal h2 {
+         font-size: 1.2rem;
+         }
+         }
+         @media (max-width: 400px) {
+         .login-container {
+         padding: 15px;
+         width: 240px;
+         }
+         #weather-widget {
+         width: 220px !important;
+         padding: 10px !important;
+         }
+         #weather-widget h3 {
+         font-size: 14px !important;
+         }
+         #weather-widget #weather-animation {
+         font-size: 35px !important;
+         }
+         .login-icon img {
+         width: 80px !important;
+         height: 80px !important;
+         }
+         .contact-modal iframe {
+         height: 400px;
+         }
+         }
+      </style>
+   </head>
+   <body>
+      <!-- ===== МОДАЛ ЗА КОНТАКТНА ФОРМА ===== -->
+      <div class="modal-overlay" id="contactModal">
+         <div class="modal contact-modal">
+            <h2>Формуляр за Контакт</h2>
+            <iframe id="contactIframe" src="about:blank" style="width:100%; height:660px; border:none; border-radius:12px; background:#fff;"></iframe>
+            <div class="modal-actions">
+               <button class="btn btn-outline" onclick="closeContactModal()">Затвори</button>
+            </div>
+         </div>
+      </div>
+
+      <!-- КАРТИНКА ЗА ВХОД В ПОЩАТА - САМО КАРТИНКА, БЕЗ СЯНКА И РАМКА -->
+      <a href="https://mail.vggemail.net" class="login-icon">
+         <img src="email.png" alt="Вход в пощата" width="128" height="128">
+      </a>
+      
+      <script type="text/javascript">
+         const workerUrl = "https://weather.vggbg.workers.dev/";
+         const defaultCity = "София, България";
+         
+         const widget = document.createElement("div");
+         widget.id = "weather-widget";
+         
+         const isMobile = window.innerWidth <= 768;
+         const widgetWidth = isMobile ? 260 : 150;
+         
+         widget.style.width = widgetWidth + "px";
+         widget.style.backgroundColor = "#ffffff";
+         widget.style.borderRadius = "12px";
+         widget.style.padding = isMobile ? "12px" : "15px";
+         widget.style.cursor = "move";
+         widget.style.resize = "both";
+         widget.style.overflow = "hidden";
+         widget.style.position = "fixed";
+         widget.style.zIndex = "100";
+         widget.style.maxWidth = "90vw";
+         widget.style.maxHeight = "80vh";
+         widget.style.overflowY = "auto";
+         widget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.15), 0 8px 40px rgba(0, 0, 0, 0.10)";
+         widget.style.transition = "box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+         
+         // Задаваме първоначалната позиция на уиджета - точно под картинката
+         setTimeout(() => {
+             const icon = document.querySelector('.login-icon');
+             if (icon) {
+                 const rect = icon.getBoundingClientRect();
+                 widget.style.top = (rect.bottom + 30) + "px";
+                 widget.style.left = "50%";
+                 widget.style.transform = "translateX(-50%)";
+             } else {
+                 widget.style.top = "50%";
+                 widget.style.left = "50%";
+                 widget.style.transform = "translate(-50%, -50%)";
+             }
+         }, 50);
+         
+         document.body.appendChild(widget);
+         
+         widget.innerHTML = `
+             <div id="weather-content" style="text-align: center; position: relative;">
+                 <button id="close-widget" style="position: absolute; top: 5px; right: 5px; border: none; background-color: transparent; cursor: pointer; font-size: 18px;">&#10005;</button>
+                 <h3 id="city" style="margin: 5px 0; color: #333;">Зареждане...</h3>
+                 <p id="temperature" style="margin: 5px 0; color: #555;"></p>
+                 <div id="weather-animation" style="font-size: 50px; width: 150px; height: auto; margin: 10px auto;"></div>
+                 <p id="feels-like" style="margin: 5px 0; color: #555;"></p>
+                 <input id="location-input" type="text" placeholder="Въведи град" style="width: 90%; padding: 8px; margin-top: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: 'Arsenal', sans-serif;">
+                 <button id="check-weather" style="margin-top: 10px; padding: 10px; border: none; border-radius: 5px; background-color: #ea5737; color: white; cursor: pointer; font-family: 'Arsenal', sans-serif; width: 100%;">Провери времето</button>
+             </div>
+         `;
+         
+         // Hover ефект само върху сянката на уиджета
+         widget.addEventListener("mouseenter", () => {
+             widget.style.boxShadow = "0 8px 30px rgba(0, 0, 0, 0.25), 0 12px 50px rgba(0, 0, 0, 0.20)";
+         });
+         
+         widget.addEventListener("mouseleave", () => {
+             widget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.15), 0 8px 40px rgba(0, 0, 0, 0.10)";
+         });
+         
+         document.getElementById("close-widget").addEventListener("click", () => widget.remove());
+         
+         document.addEventListener("keydown", (e) => {
+             if (e.key === "Escape" && document.getElementById("weather-widget")) {
+                 widget.remove();
+             }
+         });
+         
+         const animationMapping = {
+             "01d": "☀️", 
+             "01n": "🌙", 
+             "02d": "⛅", 
+             "02n": "🌤",
+             "03d": "☁️",
+             "03n": "☁️",
+             "09d": "💧",
+             "09n": "💧",
+             "10d": "🌦️",
+             "10n": "🌦️",
+             "11d": "⚡",
+             "11n": "⚡",
+             "13d": "❄️",
+             "13n": "❄️",
+             "50d": "🌫️",
+             "50n": "🌫️",
+         };
+         
+         async function getWeather(city) {
+             try {
+                 const response = await fetch(`${workerUrl}?city=${encodeURIComponent(city)}`);
+                 if (!response.ok) throw new Error("Неуспешно зареждане");
+                 const data = await response.json();
+         
+                 document.getElementById("city").innerText = data.name;
+                 document.getElementById("temperature").innerHTML = `В момента е: <strong>${data.main.temp}°C</strong>`;
+         
+                 const weatherAnimation = animationMapping[data.weather[0].icon] || "⛅";
+                 const animationDiv = document.getElementById("weather-animation");
+                 animationDiv.innerHTML = weatherAnimation;
+         
+                 document.getElementById("feels-like").innerHTML = `Чувство: <strong>${data.main.feels_like}°C</strong>`;
+             } catch (error) {
+                 document.getElementById("city").innerText = "Грешка при зареждане!";
+                 console.error(error);
+             }
+         }
+         
+         function getLocation() {
+             if (navigator.geolocation) {
+                 navigator.geolocation.getCurrentPosition(
+                     (position) => {
+                         const lat = position.coords.latitude;
+                         const lon = position.coords.longitude;
+                         fetch(`${workerUrl}?lat=${lat}&lon=${lon}`)
+                             .then((response) => response.json())
+                             .then((data) => {
+                                 document.getElementById("city").innerText = data.name;
+                                 document.getElementById("temperature").innerHTML = `В момента е: <strong>${data.main.temp}°C</strong>`;
+         
+                                 const weatherAnimation = animationMapping[data.weather[0].icon] || "⛅";
+                                 const animationDiv = document.getElementById("weather-animation");
+                                 animationDiv.innerHTML = weatherAnimation;
+         
+                                 document.getElementById("feels-like").innerHTML = `Чувство: <strong>${data.main.feels_like}°C</strong>`;
+                             })
+                             .catch(() => getWeather(defaultCity));
+                     },
+                     () => getWeather(defaultCity)
+                 );
+             } else {
+                 getWeather(defaultCity);
+             }
+         }
+         
+         let isDragging = false;
+         let dragOffsetX = 0;
+         let dragOffsetY = 0;
+         
+         widget.addEventListener("mousedown", (e) => {
+             if (e.target.closest("button") || e.target.tagName === "INPUT") return;
+             isDragging = true;
+             const rect = widget.getBoundingClientRect();
+             dragOffsetX = e.clientX - rect.left;
+             dragOffsetY = e.clientY - rect.top;
+             widget.style.cursor = "grabbing";
+             e.preventDefault();
+         });
+         
+         document.addEventListener("mousemove", (e) => {
+             if (!isDragging) return;
+             widget.style.left = (e.clientX - dragOffsetX) + "px";
+             widget.style.top = (e.clientY - dragOffsetY) + "px";
+             widget.style.transform = "none";
+         });
+         
+         document.addEventListener("mouseup", () => {
+             if (isDragging) {
+                 isDragging = false;
+                 widget.style.cursor = "move";
+             }
+         });
+         
+         let touchOffsetX = 0, touchOffsetY = 0;
+         let isTouchDragging = false;
+         
+         widget.addEventListener("touchstart", (e) => {
+             if (e.target.closest("button") || e.target.tagName === "INPUT") return;
+             const touch = e.touches[0];
+             if (!touch) return;
+             const rect = widget.getBoundingClientRect();
+             touchOffsetX = touch.clientX - rect.left;
+             touchOffsetY = touch.clientY - rect.top;
+             isTouchDragging = true;
+             widget.style.transform = "none";
+         }, { passive: true });
+         
+         document.addEventListener("touchmove", (e) => {
+             if (!isTouchDragging) return;
+             const touch = e.touches[0];
+             if (!touch) return;
+             widget.style.left = (touch.clientX - touchOffsetX) + "px";
+             widget.style.top = (touch.clientY - touchOffsetY) + "px";
+             e.preventDefault();
+         }, { passive: false });
+         
+         document.addEventListener("touchend", () => {
+             if (isTouchDragging) {
+                 isTouchDragging = false;
+                 touchOffsetX = 0;
+                 touchOffsetY = 0;
+             }
+         }, { passive: true });
+         
+         widget.ondragstart = () => false;
+         
+         document.getElementById("check-weather").addEventListener("click", () => {
+             const city = document.getElementById("location-input").value.trim();
+             if (city) {
+                 getWeather(city);
+             } else {
+                 alert("Моля, въведете валидно местоположение!");
+             }
+         });
+         
+         document.getElementById("location-input").addEventListener("keydown", (e) => {
+             if (e.key === "Enter") {
+                 document.getElementById("check-weather").click();
+             }
+         });
+         
+         const locationInput = document.getElementById("location-input");
+         locationInput.addEventListener("focus", () => {
+             locationInput.style.boxShadow = "0 0 10px rgba(234, 87, 55, 0.8)";
+         });
+         locationInput.addEventListener("blur", () => {
+             locationInput.style.boxShadow = "0 0 5px rgba(53, 174, 255, 0.5)";
+         });
+         
+         getLocation();
+         setInterval(() => getWeather(defaultCity), 15 * 60 * 1000);
+      </script>
+
+      <!-- ===== ФУНКЦИИ ЗА КОНТАКТНАТА ФОРМА ===== -->
+      <script type="text/javascript">
+         function openContactModal() {
+             const modal = document.getElementById('contactModal');
+             const iframe = document.getElementById('contactIframe');
+             iframe.src = 'https://forms.zohopublic.com/virtualoffice6913/form/ContactForm1/formperma/bJ2K6HfG3130MM7bMkB628053';
+             modal.classList.add('active');
+             document.body.style.overflow = 'hidden';
+         }
+
+         function closeContactModal() {
+             const modal = document.getElementById('contactModal');
+             modal.classList.remove('active');
+             document.body.style.overflow = '';
+             document.getElementById('contactIframe').src = 'about:blank';
+         }
+
+         document.addEventListener('DOMContentLoaded', function() {
+             const contactModal = document.getElementById('contactModal');
+             if (contactModal) {
+                 contactModal.addEventListener('click', function(e) {
+                     if (e.target === this) closeContactModal();
+                 });
+             }
+         });
+
+         document.addEventListener('keydown', function(e) {
+             if (e.key === 'Escape') {
+                 closeContactModal();
+             }
+         });
+      </script>
+
+      <div class="footer">
+         <a href="#" onclick="openContactModal(); return false;" style="color: #424242;">контактна форма</a>
+         | <a href="https://1246.3cx.cloud/LiveChat826231" style="color: #424242;" target="_blank">съобщение/разговор</a> |
+         <a href="https://t.me/+7_XRl0bzOYFlMWVk" style="color: #424242;" target="_blank">telegram</a> <br />
+         vggemail.net ✔️
+         <script>
+            const today = new Date();
+            const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+            document.write(today.toLocaleDateString("bg-BG", options));
+         </script>
+         <script type="text/javascript">
+            var init = function () {
+                document.getElementById("user").value = "";
+                document.getElementById("pass").value = "";
+                document.getElementById("user").focus();
+            };
+            if (window.addEventListener) {
+                window.addEventListener("load", init, false);
+            } else if (document.addEventListener) {
+                document.addEventListener("load", init, false);
+            }
+         </script>
+      </div>
+      
+      <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"965aa54f483cd101","version":"2025.7.0","r":1,"token":"27c14415f8664bc399250fac7f8899ea","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}}}' crossorigin="anonymous"></script>
+      <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"27c14415f8664bc399250fac7f8899ea","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+      
+      <call-us-selector phonesystem-url="https://1246.3cx.cloud" party="LiveChat826231"></call-us-selector>
+      <script defer src="https://downloads-global.3cx.com/downloads/livechatandtalk/v1/callus.js" id="tcx-callus-js" charset="utf-8"></script>
+   <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"27c14415f8664bc399250fac7f8899ea","r":1}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"27c14415f8664bc399250fac7f8899ea","r":1}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"27c14415f8664bc399250fac7f8899ea","r":1}' crossorigin="anonymous"></script>
+</body>
+</html>
