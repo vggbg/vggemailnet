@@ -1,0 +1,268 @@
+
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Документация ⚡ Lightweight E2EE Web Chat</title>
+    <!-- Favicon ✍️ -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✍️</text></svg>" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #ffffff;
+            font-family: 'Georgia', 'Times New Roman', Times, serif;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+            color: #1e1e1e;
+        }
+
+        .newspaper {
+            max-width: 1000px;
+            width: 100%;
+            background: #ffffff;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06);
+            padding: 2rem 2.5rem;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .header {
+            border-bottom: 4px double #222; /* Главна заглавна линия */
+            margin-bottom: 1.8rem;
+            padding-bottom: 0.6rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            word-break: break-word;
+        }
+
+        .header h1 small {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: #444;
+            margin-left: 8px;
+        }
+
+        .byline {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #222; /* Върната на тънка единична черна линия */
+            padding-bottom: 0.4rem;
+            margin-bottom: 1.8rem;
+            color: #3a3a3a;
+            flex-wrap: wrap;
+        }
+
+        .byline span {
+            background: #e3f2fd; /* Светло синьо */
+            padding: 0.1rem 0.8rem;
+            border-radius: 30px;
+            font-style: italic;
+        }
+
+        .article-content {
+            column-count: 2;
+            column-gap: 2.2rem;
+            column-rule: 1px solid #222; /* Тънка единична черна линия между колоните */
+            text-align: justify;
+            hyphens: auto;
+        }
+
+        .article-content p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            font-size: 1.05rem;
+            text-indent: 1.2em;
+        }
+
+        .article-content h2 {
+            column-span: all;
+            font-size: 1.7rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            margin-bottom: 0.4rem;
+            border-bottom: 1px solid #222; /* Тънка единична черна линия под заглавията */
+            padding-bottom: 0.2rem;
+            text-indent: 0;
+            break-after: avoid;
+        }
+
+        .article-content h3 {
+            column-span: all;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-top: 1.2rem;
+            margin-bottom: 0.3rem;
+            text-indent: 0;
+            break-after: avoid;
+        }
+
+        .article-content ul, .article-content ol {
+            margin: 0.5rem 0 1rem 1.8rem;
+            line-height: 1.6;
+        }
+
+        .article-content li {
+            margin-bottom: 0.25rem;
+        }
+
+        .highlight-box {
+            column-span: all;
+            background: #f0f7ff; /* Много светло синьо за фона на кутията */
+            border-left: 6px solid #4d9de0; /* Точно твоето синьо от чата */
+            padding: 1rem 1.6rem;
+            margin: 1rem 0;
+            border-radius: 0 12px 12px 0;
+            font-style: normal;
+        }
+
+        .highlight-box strong {
+            font-weight: 700;
+            color: #1f1f1f;
+        }
+
+        .tech-tag {
+            column-span: all;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 0.8rem;
+            margin: 1rem 0 0.2rem 0;
+            padding: 0.6rem 0;
+        }
+
+        .tech-tag span {
+            background: #e3f2fd; /* Светло синьо фон за таговете */
+            padding: 0.2rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            color: #1d1d1d;
+            border: 1px solid #bbdefb; /* Светло синя рамка */
+            font-family: 'Courier New', monospace;
+        }
+
+        .footer-note {
+            column-span: all;
+            margin-top: 1.8rem;
+            border-top: 1px solid #222; /* Тънка единична черна линия във футъра */
+            padding-top: 0.4rem;
+            font-size: 0.9rem;
+            color: #455a64; /* Леко синкаво-сив цвят за текста */
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .footer-note .license {
+            font-style: italic;
+        }
+
+        @media (max-width: 700px) {
+            .newspaper {
+                padding: 1.5rem 1rem;
+            }
+            .article-content {
+                column-count: 1;
+                column-rule: none;
+            }
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            .header h1 small {
+                font-size: 1rem;
+                display: block;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="newspaper">
+        <div class="header">
+            <h1>⚡ Lightweight E2EE Web Chat <small>— документация</small></h1>
+        </div>
+        <div class="byline">
+            <span>✍️ Технически преглед</span>
+            <span>🔒 криптиране от край до край</span>
+        </div>
+
+        <div class="article-content">
+            <p><strong>Еднофайлово, вграждаемо (embeddable) уеб чат приложение</strong> с незабавни съобщения и опционално криптиране от край до край (E2EE). Не изисква собствен бекенд сървър – използва изцяло клиентска архитектура, подпомогната от Supabase.</p>
+
+            <h2>✨ Основни функционалности</h2>
+            <ul>
+                <li><strong>Реално време (Realtime):</strong> Мигновено изпращане и получаване на съобщения чрез WebSockets.</li>
+                <li><strong>Пулинг (Fallback):</strong> Автоматично превключване към polling (на всеки 3 сек.) ако WebSocket връзката прекъсне (често при мобилни устройства).</li>
+                <li><strong>Криптиране (E2EE):</strong> Опционално криптиране на стаи с парола. Използва AES-GCM-256 и PBKDF2. Сървърът (Supabase) няма достъп до чистия текст или файлове при криптирани стаи.</li>
+                <li><strong>Споделяне на файлове:</strong> Качване на изображения и документи (до 15MB) с поддръжка на криптиране.</li>
+                <li><strong>Telegram Интеграция:</strong> Възможност потребителите да получават известия за непрочетени съобщения директно в Telegram бот.</li>
+                <li><strong>Вграждане (iFrame):</strong> Генериране на готов iframe код за вграждане на чата във всеки външен сайт.</li>
+                <li><strong>Интеракции:</strong> Отговори (Replies) на конкретни съобщения и изтриване на собствени съобщения.</li>
+                <li><strong>Присъствие:</strong> Индикатори "пише..." и брой потребители на линия в дадена стая.</li>
+                <li><strong>Изчистен UI и Отзивчив дизайн:</strong> Mobile-first дизайн с безопасни зони (safe-area-insets) за съвременни смартфони. Хедърът е минималистичен, а в долния футер се визуализира текущата дата и дискретни бутони за споделяне.</li>
+            </ul>
+
+            <h2>🏗️ Как работи (Архитектура)</h2>
+            <p>Приложението е изградено изцяло на клиентската страна (Single-Page Application в един <code>index.html</code> файл). То комуникира директно със Supabase (PostgreSQL база данни, Storage и Realtime).</p>
+
+            <h3>Създаване и присъединяване към стаи</h3>
+            <p>Чат стаите са ефимерни (не изискват регистрация). Генерира се случаен Room ID, който се добавя към URL параметъра (<code>?room=abc123</code>). Връзката може да бъде споделен. Ако създателят на стаята е задал парола (ключ), системата превключва в режим E2EE и изисква ключа при влизане.</p>
+
+            <h3>Криптография (E2EE Flow)</h3>
+            <p>Когато стаята е криптирана, се използва вградения Web Crypto API на браузъра. Паролата се обработва чрез алгоритъм PBKDF2 заедно със сол (Salt), базирана на ID-то на стаята, за да се генерира 256-битов AES ключ. Текстовете се криптират с AES-GCM, като за всяко съобщение се генерира случаен вектор (IV). Файловете се криптират по същия начин преди качване в Storage. При получаване, клиентът дешифрира данните локално.</p>
+
+            <h3>Realtime и Синхронизация</h3>
+            <p>Приложението отваря Supabase Realtime канал за конкретната стая:</p>
+            <ul>
+                <li><strong>INSERT:</strong> Слуша за нови съобщения. Използва локален кеш (Set), за да предотврати дублиране на съобщенията, които изпращачът вижда веднага на екрана си.</li>
+                <li><strong>DELETE:</strong> Слуша за изтрити редове и премахва съответния балон с анимация от екрана на останалите потребители.</li>
+                <li><strong>Broadcast:</strong> Използва се за индикатора "пише..." (ограничен на 2 секунди, за да не натоварва сървъра).</li>
+                <li><strong>Presence:</strong> Следи кои потребители имат отворен таба, за да показва брояча "на линия".</li>
+            </ul>
+
+            <h3>Telegram Известия</h3>
+            <p>Потребителят натиска бутон за свързване с Telegram. Приложението генерира Base64 payload (RoomID:Nickname) и отваря бота със <code>/start</code> параметър. Supabase Edge Function (<code>telegram-webhook</code>) приема командата, записва Chat ID-то на потребителя в таблицата <code>telegram_subs</code> и управлява статусите (<code>/stop</code>, <code>/status</code>). Когато пристигне ново съобщение, друга Edge Function (<code>check-notifications</code>), въртяща се по график (Cron), проверява дали потребителят е офлайн и му изпраща известие през Telegram API.</p>
+
+            <div class="highlight-box">
+                <strong>⚡ Криптиране от край до край</strong> – Паролата никога не напуска браузъра. Сървърът (Supabase) вижда само криптирани байтове. Дори файловете се съхраняват шифровани в Storage.
+            </div>
+
+            <h2>🛠️ Технологии</h2>
+            <div class="tech-tag">
+                <span>Frontend: HTML5, CSS3, Vanilla JS (ES6+)</span>
+                <span>Бекенд/База: Supabase (PostgreSQL, Realtime, Storage, Edge Functions)</span>
+                <span>Криптография: Web Crypto API (Browser Native)</span>
+                <span>UI: emoji-picker-element, Iconify</span>
+            </div>
+
+            <p><strong>Структура на данните:</strong> Всяко съобщение съдържа <code>id</code>, <code>room_id</code>, <code>username</code>, <code>content</code> (текст или метаданни за файл), <code>iv</code>, <code>file_url</code>, <code>reply_to</code>, <code>created_at</code>. При криптирани стаи, <code>content</code> и <code>file_url</code> са криптирани низове.</p>
+
+            <p><strong>Сигурност:</strong> Ключът се генерира на базата на парола + сол (room ID), което гарантира уникалност за всяка стая. Използва се 256-битов AES-GCM с произволен IV за всяко съобщение – устойчивост срещу атаки с избран шифротекст.</p>
+
+            <div class="highlight-box">
+                <strong>📄 Лиценз:</strong> Свободен за ползване и модифициране.
+            </div>
+
+            <p style="column-span: all; text-align: right; font-style: italic; margin-top: 1rem;">— край на документацията —</p>
+        </div>
+
+        <div class="footer-note">
+            <span class="license">✍️ Документация ⚡ Lightweight E2EE Web Chat</span>
+            <span>🔗 iframe-вграждане · Telegram бот · E2EE</span>
+        </div>
+    </div>
+</body>
+</html>
