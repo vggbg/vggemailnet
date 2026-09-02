@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="bg">
 <head>
@@ -1376,11 +1375,16 @@
             stopPolling();
         });
 
-        if (window.self !== window.top) {
+                if (window.self !== window.top) {
+            // Ако сме вградени в iframe (в самите табове на мултичата)
             document.body.classList.add('is-iframe');
             const c = document.querySelector('.container');
             c.style.height = '100dvh'; c.style.maxHeight = 'none';
             c.style.borderRadius = '0'; c.style.border = 'none'; c.style.boxShadow = 'none';
+        } else {
+            // Ако отваряме страницата нормално -> ВКЛЮЧВАМЕ МУЛТИЧА (Shell режима)
+            window.__SHELL_MODE__ = true;
+            document.documentElement.classList.add('shell-mode');
         }
 
         if (document.readyState === 'loading') {
