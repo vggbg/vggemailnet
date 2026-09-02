@@ -32,18 +32,18 @@
 
         .container {
            background: #ffffff;
-           border-radius: 8px; /* Променено от 12px на 8px, за да съвпада с документацията */
+           border-radius: 8px;
            max-width: 800px;
            width: 100%;
            display: flex;
            flex-direction: column;
-           box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06); /* Новата сянка */
+           box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06);
            border: 1px solid #eaeaea; 
            height: auto;
            min-height: 400px;
            max-height: 750px;
            position: relative;
-           overflow: hidden; /* <--- ТОЗИ РЕД РЕШАВА ПРОБЛЕМА С ЪГЛИТЕ И ЛИНИИТЕ */
+           overflow: hidden;
         }
 
         .chat-header {
@@ -166,7 +166,35 @@
         .msg-action-btn:hover { color: #555; }
         .msg-delete-btn:hover { color: #e05a4f; }
         .msg-reply-btn:hover { color: #4d9de0; }
+        
         .msg-text { font-size: 0.95rem; color: #222; line-height: 1.35; user-select: text; }
+        
+        /* Стилове за текстови линкове (Остават същите) */
+        .msg-text a {
+            color: #4d9de0; text-decoration: underline; word-break: break-word;
+        }
+        .message-row.self .msg-text a { color: #2980b9; }
+        .msg-text a:hover { opacity: 0.8; }
+        
+        /* НОВО: Стилове за YouTube преглед (голяма кликваема картинка) */
+        .msg-youtube {
+            display: block; position: relative; margin-top: 8px;
+            border-radius: 8px; overflow: hidden; background: #000;
+            text-decoration: none; width: 100%; min-width: 220px;
+        }
+        .msg-youtube img {
+            width: 100%; display: block; aspect-ratio: 16 / 9; object-fit: cover;
+        }
+        .msg-youtube .play-icon {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 50px; height: 50px; background: rgba(255, 0, 0, 0.85); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; pointer-events: none;
+        }
+        .msg-youtube .play-icon::after {
+            content: ''; display: block; border-style: solid;
+            border-width: 9px 0 9px 16px; border-color: transparent transparent transparent #fff; margin-left: 3px;
+        }
+
         .msg-image { max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; display: block; }
 
         .msg-reply {
@@ -345,20 +373,16 @@
 
 <!-- ============ SHELL ДОБАВКА 1/2 ============ -->
 <style>
+    /* Директно отворена страница = shell режим, оригиналният чат остава скрит */
     html.shell-mode body { padding: 0 !important; }
     html.shell-mode .container { display: none !important; }
-    /* Когато чатът е вграден в iframe (нашите табове), скриваме оригиналния му футер,
-       защото Shell-а вече има бутони за връзка и вграждане. */
-    body.is-iframe .chat-footer { display: none !important; }
 
     #chatShell { position: fixed; inset: 0; z-index: 500; display: flex; background: #fff; }
 
     /* ---- Десктоп: сайдбар вляво ---- */
-    .shell-topbar { 
-        width: 240px; height: 100%; flex-shrink: 0; background: #fafafa; border-right: 1px solid #eaeaea;
-        display: flex; flex-direction: column; gap: 10px; padding: 14px 12px; overflow: hidden; 
-    }
-    .shell-actions { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+    .shell-topbar { width: 240px; flex-shrink: 0; background: #fafafa; border-right: 1px solid #eaeaea;
+        display: flex; flex-direction: column; gap: 10px; padding: 14px 12px; overflow: hidden; }
+    .shell-actions { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; order: -1; }
     .shell-action { display: flex; align-items: center; justify-content: center; gap: 6px;
         height: 40px; padding: 0 12px; border: none; border-radius: 8px; font-family: inherit;
         font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.15s; white-space: nowrap; }
@@ -407,12 +431,12 @@
 
     /* Футер на сайдбара за бутоните (Десктоп) */
     .shell-footer {
-        display: flex; flex-direction: column; gap: 8px;
+        margin-top: auto; display: flex; flex-direction: column; gap: 8px;
         padding-top: 10px; border-top: 1px solid #eaeaea; flex-shrink: 0;
     }
     .shell-footer .shell-action { width: 100%; height: 36px; font-size: 0.8rem; }
 
-    /* ---- Мобилно: таб-лента отгоре, като в браузър ---- */
+ /* ---- Мобилно: таб-лента отгоре, като в браузър ---- */
     @media (max-width: 480px) {
         #chatShell { flex-direction: column; }
         .shell-topbar { width: 100%; height: auto; flex-direction: row; align-items: center; gap: 6px;
@@ -421,11 +445,36 @@
         .shell-actions { flex-direction: row; gap: 6px; flex-shrink: 0; }
         .shell-action span { display: none; }
         .shell-action { width: 34px; height: 34px; padding: 0; flex-shrink: 0; }
-        .shell-tabs { flex-direction: row; flex: 1; min-width: 0; gap: 6px; padding: 2px
-         }
-    </style>
+        .shell-tabs { flex-direction: row; flex: 1; min-width: 0; gap: 6px; padding: 2px 0;
+            overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .shell-tabs::-webkit-scrollbar { display: none; }
+        .shell-tab { border-radius: 18px; max-width: 150px; flex-shrink: 0; padding: 7px 6px 7px 11px; background: #f4f4f4; }
+        .shell-empty .shell-action { width: min(78vw, 250px); }
+        .shell-empty .shell-action span { display: inline; }
+        
+        /* СКРИВАЙ БУТОНИТЕ ОТ САЙДБАРА НА МОБИЛЕН, ЗА ДБИ СЕ ПОЛЗВА ОРИГИНАЛНИЯ ФУТЕР */
+        .shell-footer { display: none !important; }
+    }
+</style>
 
-        <!-- ============ SHELL ДОБАВКА 1/2 КРАЙ============ -->
+<script>
+    /* Директно отворена (не в iframe) → shell режим с табове.
+       В iframe (нашите табове или чуждо вграждане) → нищо не правим, чатът си работи както досега. */
+    (function () {
+        try { if (window.self !== window.top) return; } catch (e) { return; }
+        var params = new URLSearchParams(window.location.search);
+        var initial = params.get('room');
+        if (initial) {
+            window.__SHELL_INITIAL_ROOM__ = initial;
+            params.delete('room');
+            var qs = params.toString();
+            try { window.history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : '')); } catch (e) {}
+        }
+        window.__SHELL_MODE__ = true;
+        document.documentElement.classList.add('shell-mode');
+    })();
+</script>
+<!-- ============ КРАЙ ДОБАВКА 1/2 ============ -->
 
 </head>
 <body>
@@ -478,7 +527,6 @@
                 <button class="send-btn" id="sendBtn" type="button">➤</button>
             </div>
 
-            <!-- НОВИЯТ ФУТЕР -->
             <div class="chat-footer" id="chatFooter" style="display: none; flex-wrap: wrap; gap: 5px 15px;">
                 <a id="footerDate" class="footer-link-btn" href="/chat/readme.html" target="_blank" rel="noopener noreferrer" title="За чата...">🌐 За чата...</a>
                 <div class="footer-actions">
@@ -713,7 +761,6 @@
             }
         }
 
-        // Обединена логика за копиране и отваряне на Телеграм
         function handleTelegramClick() {
             if (!roomId || !currentUser) return;
             
@@ -723,10 +770,8 @@
             
             let command = '';
             if (telegramEnabled === true) {
-                // Включено -> искаме да спрем
                 command = '/stop ' + roomId;
             } else {
-                // Изключено/Неактивирано -> искаме да включим
                 command = '/start ' + payload;
             }
             
@@ -734,12 +779,10 @@
             
             navigator.clipboard.writeText(command).then(() => {
                 showToast('📋 Командата е копирана. Отваряне на Telegram след 3 секунди...');
-                // Забавяне от 3 секунди, за да може потребителят да прочете съобщението
                 setTimeout(() => {
                     window.open(tgUrl, '_blank');
                 }, 3000);
             }).catch(() => {
-                // Ако клипбордът блокира, просто отваряме бота след 3 секунди
                 showToast('Отвори бота след 3 сек и изпрати: ' + command);
                 setTimeout(() => {
                     window.open(tgUrl, '_blank');
@@ -1155,6 +1198,39 @@
             return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
         }
 
+        // НОВА ФУНКЦИЯ ЗА ЛИНКОВЕ И YOUTUBE
+        function formatMessageText(text) {
+            // 1. Екранираме HTML за сигурност (предотвратява XSS)
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            let escapedText = text.replace(/[&<>"']/g, m => map[m]);
+
+            // 2. Заменяме новите редове с <br>
+            escapedText = escapedText.replace(/\n/g, '<br>');
+
+            // 3. Regex за намиране на URL адреси
+            const urlRegex = /(https?:\/\/[^\s]+)/gi;
+            
+            // 4. Обработваме намерените линкове
+            escapedText = escapedText.replace(urlRegex, (url) => {
+                // Премахваме евентуални препинателни знаци в края на линка
+                let cleanUrl = url.replace(/[.,!?;:]$/, '');
+                
+                // Проверяваме дали е YouTube линк
+                const ytMatch = cleanUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                
+                if (ytMatch && ytMatch[1]) {
+                    const videoId = ytMatch[1];
+                    // Връщаме голяма кликваема картинка (thumbnail) с бутон Play
+                    return `<a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer" class="msg-youtube"><img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="YouTube Video"><div class="play-icon"></div></a>`;
+                } else {
+                    // Ако не е YouTube, правим нормален кликваем линк (СЪЩОТО КАТО ПРЕДИ)
+                    return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>`;
+                }
+            });
+
+            return escapedText;
+        }
+
         async function addMessageToScreen(msg) {
             if (msg.nickname === 'Система') return;
             const isMe = msg.nickname === currentUser;
@@ -1221,9 +1297,11 @@
                 row.appendChild(a);
             }
 
+            // Използваме функцията за визуализация на текста
             if (displayText && !msg.file_url) {
                 const td = document.createElement('div');
-                td.className = 'msg-text'; td.textContent = displayText;
+                td.className = 'msg-text';
+                td.innerHTML = formatMessageText(displayText);
                 row.appendChild(td);
             }
 
@@ -1375,16 +1453,11 @@
             stopPolling();
         });
 
-                if (window.self !== window.top) {
-            // Ако сме вградени в iframe (в самите табове на мултичата)
+        if (window.self !== window.top) {
             document.body.classList.add('is-iframe');
             const c = document.querySelector('.container');
             c.style.height = '100dvh'; c.style.maxHeight = 'none';
             c.style.borderRadius = '0'; c.style.border = 'none'; c.style.boxShadow = 'none';
-        } else {
-            // Ако отваряме страницата нормално -> ВКЛЮЧВАМЕ МУЛТИЧА (Shell режима)
-            window.__SHELL_MODE__ = true;
-            document.documentElement.classList.add('shell-mode');
         }
 
         if (document.readyState === 'loading') {
