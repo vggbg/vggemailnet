@@ -1,0 +1,1645 @@
+
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Чат</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.18.1/index.js"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans', 'Ubuntu', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        html { height: 100%; }
+        body {
+            background: #ffffff; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            height: 100%;
+            overflow: hidden;
+        }
+        body.is-iframe { align-items: flex-start; }
+
+        .container {
+           background: #ffffff;
+           border-radius: 8px; /* Променено от 12px на 8px, за да съвпада с документацията */
+           max-width: 800px;
+           width: 100%;
+           display: flex;
+           flex-direction: column;
+           box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06); /* Новата сянка */
+           border: 1px solid #eaeaea; 
+           height: auto;
+           min-height: 400px;
+           max-height: 750px;
+           position: relative;
+           overflow: hidden; /* <--- ТОЗИ РЕД РЕШАВА ПРОБЛЕМА С ЪГЛИТЕ И ЛИНИИТЕ */
+        }
+
+        .chat-header {
+            background: #ffffff;
+            padding: 12px 20px;
+            border-bottom: 1px solid #eaeaea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .room-info h1 { 
+            font-size: 1.1rem; color: #222; margin: 0; display: flex; 
+            align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+        }
+        .online-count { font-size: 0.75rem; font-weight: 400; color: #999; }
+        .header-actions { display: none; gap: 8px; flex-shrink: 0; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+        
+        .action-btn {
+            background: #f0f0f0; border: 1px solid #ddd; color: #333;
+            border-radius: 8px; padding: 7px 12px; font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; transition: 0.15s; display: none; align-items: center; gap: 5px;
+        }
+        .action-btn:hover { background: #e8e8e8; }
+
+        .tg-status {
+            display: none; font-size: 1.1rem; font-weight: 600; white-space: nowrap;
+            align-items: center; gap: 4px; background: none; border: none; cursor: pointer; padding: 7px;
+            font-family: inherit; line-height: 1;
+        }
+        .tg-status iconify-icon { pointer-events: none; }
+        .tg-status.enabled { color: #1a8f4e; transition: 0.15s; }
+        .tg-status.enabled:hover { color: #15703d; }
+        .tg-status.disabled { color: #888; transition: 0.15s; }
+        .tg-status.disabled:hover { color: #555; }
+
+        .login-section {
+            padding: 2.5rem 2rem; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; flex: 1; gap: 12px;
+        }
+        .login-title { color: #222; font-size: 1.15rem; font-weight: 700; text-align: center; margin-bottom: 4px; }
+        .login-subtitle { color: #777; font-size: 0.9rem; text-align: center; }
+        .login-hint { color: #999; font-size: 0.8rem; text-align: center; margin-top: -8px; }
+        .error-text { color: #e05a4f; font-weight: 600; }
+        
+        .login-input {
+            width: 100%; max-width: 300px; padding: 11px 18px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 0.95rem; color: #222; background: #fff;
+            outline: none; text-align: center; transition: 0.15s;
+            height: 44px; font-family: inherit; 
+        }
+        .login-input:focus { border-color: #4d9de0; }
+        .login-btn {
+            background: #4d9de0; border: none; border-radius: 8px; padding: 11px 24px;
+            font-size: 0.95rem; font-weight: 600; color: #fff; cursor: pointer; transition: 0.15s ease;
+            height: 44px;
+        }
+        .login-btn:hover { background: #3a8ad0; }
+        .login-btn:disabled { background: #ccc; pointer-events: none; }
+        
+        .key-gen-row {
+            display: flex; gap: 8px; width: 100%; max-width: 300px; align-items: center;
+        }
+        .key-gen-btn {
+            background: #1a8f4e; border: none; color: white; border-radius: 8px; 
+            padding: 0 16px; height: 44px; cursor: pointer; font-size: 0.85rem; 
+            font-weight: 600; white-space: nowrap; transition: 0.15s;
+        }
+        .key-gen-btn:hover { background: #15703d; }
+
+        .login-input-wrapper {
+            position: relative; width: 100%; max-width: 300px;
+        }
+        .key-gen-row .login-input-wrapper { flex: 1; }
+        
+        input[type="password"].login-input {
+            font-family: inherit; letter-spacing: 1px; 
+        }
+        input[type="password"].login-input::placeholder {
+            font-family: inherit; letter-spacing: normal; font-size: 0.9rem;
+        }
+        .toggle-pass-btn {
+            position: absolute; right: 10px; top: 50%;
+            transform: translateY(-50%); background: none;
+            border: none; cursor: pointer; color: #888; padding: 5px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .toggle-pass-btn:hover { color: #555; }
+
+        .chat-section { display: none; flex-direction: column; flex: 1; min-height: 0; }
+        .chat-section.active { display: flex; }
+
+        .chat-messages {
+            flex: 1; display: flex; flex-direction: column; gap: 4px;
+            padding: 15px; overflow-y: auto; overflow-x: hidden;
+            background: #ffffff; user-select: text; min-height: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .message-row {
+            max-width: 75%; padding: 8px 12px 6px 12px; border-radius: 12px 12px 12px 4px;
+            background: #f0f0f0; align-self: flex-start; position: relative;
+            word-wrap: break-word; animation: fadeIn 0.2s ease; user-select: text; 
+        }
+        .message-row.self { background: #e3f2fd; border-radius: 12px 12px 4px 12px; align-self: flex-end; }
+
+        .msg-header { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+        .msg-nickname { font-weight: 700; font-size: 0.85rem; color: #4d9de0; flex-shrink: 0; }
+        .message-row.self .msg-nickname { color: #2980b9; }
+        .msg-time { font-size: 0.7rem; color: #999; flex-shrink: 0; }
+        .msg-spacer { flex: 1; }
+        .msg-action-btn {
+            background: none; border: none; cursor: pointer;
+            font-size: 0.72rem; color: #bbb; padding: 2px 3px;
+            opacity: 0; transition: 0.15s; flex-shrink: 0; border-radius: 4px; line-height: 1;
+        }
+        .message-row:hover .msg-action-btn { opacity: 1; }
+        .msg-action-btn:hover { color: #555; }
+        .msg-delete-btn:hover { color: #e05a4f; }
+        .msg-reply-btn:hover { color: #4d9de0; }
+        .msg-text { font-size: 0.95rem; color: #222; line-height: 1.35; user-select: text; }
+        .msg-image { max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; display: block; }
+
+        .msg-reply {
+            background: rgba(0,0,0,0.05); border-left: 3px solid #4d9de0;
+            border-radius: 4px; padding: 3px 8px; margin-bottom: 4px; overflow: hidden;
+        }
+        .message-row.self .msg-reply { border-left-color: #2980b9; background: rgba(0,0,0,0.04); }
+        .msg-reply-nick { font-weight: 700; font-size: 0.75rem; color: #4d9de0; display: block; margin-bottom: 1px; }
+        .msg-reply-text { font-size: 0.78rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+
+        .msg-file {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 12px; background: rgba(0,0,0,0.06); border-radius: 8px;
+            color: #2980b9; text-decoration: none; font-size: 0.85rem;
+            margin-top: 4px; transition: 0.15s; max-width: 100%; word-break: break-all;
+        }
+        .msg-file:hover { background: rgba(0,0,0,0.1); }
+        .message-row.self .msg-file { color: #1a6db5; }
+
+        .reply-bar {
+            display: none; align-items: center; padding: 6px 14px;
+            background: #f0f7ff; border-top: 1px solid #d0e3f7;
+            gap: 8px; flex-shrink: 0;
+        }
+        .reply-bar-content { flex: 1; min-width: 0; overflow: hidden; }
+        .reply-bar-nick { font-weight: 700; font-size: 0.78rem; color: #2980b9; display: block; }
+        .reply-bar-text { font-size: 0.78rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .reply-bar-close { background: none; border: none; font-size: 1rem; cursor: pointer; color: #999; flex-shrink: 0; padding: 4px; }
+        .reply-bar-close:hover { color: #333; }
+
+        .typing-indicator {
+            display: none; align-items: center; gap: 6px;
+            padding: 3px 15px; font-size: 0.72rem; color: #999; flex-shrink: 0;
+        }
+        .typing-dots { display: flex; gap: 3px; }
+        .typing-dots span {
+            width: 5px; height: 5px; background: #bbb; border-radius: 50%;
+            animation: typingBounce 1.2s ease-in-out infinite;
+        }
+        .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+        .chat-input-area { 
+            display: flex; gap: 6px; padding: 10px 12px; background: #ffffff; 
+            border-top: 1px solid #eaeaea; flex-shrink: 0; align-items: center; 
+        }
+        .input-action-btn {
+            background: none; border: none; font-size: 1.2rem; cursor: pointer;
+            padding: 0; border-radius: 50%; transition: 0.15s; opacity: 0.6; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            width: 34px; height: 34px;
+        }
+        .input-action-btn:hover { opacity: 1; background: #f0f0f0; }
+        .chat-input {
+            flex: 1; min-width: 0; padding: 10px 14px; border: 1px solid #ddd;
+            border-radius: 20px; font-size: 0.95rem; color: #222; background: #f9f9f9; outline: none;
+        }
+        .chat-input:focus { border-color: #4d9de0; background: #fff; }
+        .send-btn {
+            background: #4d9de0; border: none; color: #fff; border-radius: 50%;
+            width: 40px; height: 40px; font-size: 1.1rem; cursor: pointer; 
+            transition: 0.15s ease; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .send-btn:hover { background: #3a8ad0; }
+        .send-btn:active { transform: scale(0.9); }
+        .send-btn:disabled { background: #ccc; pointer-events: none; }
+
+        #emojiPickerWrapper {
+            position: absolute; bottom: 65px; left: 12px; z-index: 100;
+            border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: none; background: #fff; width: calc(100% - 24px); max-width: 350px;
+            flex-direction: column;
+        }
+        #emojiPickerWrapper.open { display: flex; }
+        emoji-picker { width: 100%; height: 300px; flex-shrink: 0; border: none; --num-columns: 8; --emoji-padding: 0.5rem; }
+
+        .lightbox {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 2000; display: none; align-items: center; justify-content: center;
+        }
+        .lightbox.open { display: flex; }
+        .lightbox-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.88); animation: fadeIn 0.2s ease;
+        }
+        .lightbox-img {
+            position: relative; max-width: 95%; max-height: 92vh;
+            object-fit: contain; border-radius: 6px; animation: lbZoom 0.25s ease;
+        }
+        .lightbox-close {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(255,255,255,0.12); color: #fff; border: none;
+            border-radius: 50%; width: 40px; height: 40px; font-size: 1.3rem;
+            cursor: pointer; z-index: 1; transition: 0.15s;
+        }
+        .lightbox-close:hover { background: rgba(255,255,255,0.25); }
+
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #333; color: white; padding: 10px 24px; border-radius: 8px;
+            font-size: 0.9rem; font-weight: 600; z-index: 3000; opacity: 0;
+            transition: opacity 0.3s ease; pointer-events: none; white-space: nowrap;
+        }
+        .toast.show { opacity: 1; }
+
+        .chat-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 15px;
+            border-top: 1px solid #eaeaea;
+            background: #fafafa;
+            flex-shrink: 0;
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .footer-date { font-weight: 500; }
+        .footer-actions { display: flex; gap: 15px; }
+        .footer-link-btn {
+            background: none;
+            border: none;
+            color: #4d9de0;
+            cursor: pointer;
+            padding: 0;
+            font-size: 0.75rem;
+            font-family: inherit;
+            text-decoration: none;
+            transition: 0.15s;
+        }
+        .footer-link-btn:hover { color: #3a8ad0; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+        @keyframes lbZoom { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        @media (max-width: 480px) {
+            body { padding: 0; align-items: flex-start; }
+            .container { height: 100dvh; max-height: none; border-radius: 0; border: none; box-shadow: none; }
+            .chat-header { padding: 8px 12px; gap: 6px; }
+            .header-actions { gap: 5px; }
+            .btn-text { display: none; }
+            .action-btn { padding: 7px 8px; font-size: 0; }
+            .tg-status { font-size: 1.1rem; }
+            .chat-messages { padding: 10px; }
+            .chat-input-area { 
+                padding: 8px 10px; 
+                padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+                gap: 3px; 
+            }
+            .input-action-btn { width: 30px; height: 30px; font-size: 1.05rem; }
+            .chat-input { padding: 8px 12px; font-size: 0.9rem; }
+            .send-btn { width: 36px; height: 36px; font-size: 1rem; }
+            .msg-action-btn { opacity: 0.35; }
+            #emojiPickerWrapper { left: 8px; right: 8px; bottom: 60px; width: auto; max-width: none; }
+            emoji-picker { height: 250px; }
+            .login-section { padding: 2rem 1.5rem; gap: 10px; }
+            .chat-footer { 
+                padding: 6px 12px; 
+                padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+                font-size: 0.7rem;
+            }
+            .footer-actions { gap: 10px; }
+            .footer-link-btn { font-size: 0.7rem; }
+        }
+
+        @supports not (height: 100dvh) {
+            @media (max-width: 480px) {
+                .container { height: 100vh; height: -webkit-fill-available; }
+            }
+        }
+    </style>
+
+<!-- ============ SHELL ДОБАВКА 1/2 ============ -->
+<style>
+    html.shell-mode body { padding: 0 !important; }
+    html.shell-mode .container { display: none !important; }
+    /* Когато чатът е вграден в iframe (нашите табове), скриваме оригиналния му футер,
+       защото Shell-а вече има бутони за връзка и вграждане. */
+    body.is-iframe .chat-footer { display: none !important; }
+
+    #chatShell { position: fixed; inset: 0; z-index: 500; display: flex; background: #fff; }
+
+    /* ---- Десктоп: сайдбар вляво ---- */
+    .shell-topbar { 
+        width: 240px; height: 100%; flex-shrink: 0; background: #fafafa; border-right: 1px solid #eaeaea;
+        display: flex; flex-direction: column; gap: 10px; padding: 14px 12px; overflow: hidden; 
+    }
+    .shell-actions { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+    .shell-action { display: flex; align-items: center; justify-content: center; gap: 6px;
+        height: 40px; padding: 0 12px; border: none; border-radius: 8px; font-family: inherit;
+        font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.15s; white-space: nowrap; }
+    .shell-action.new { background: #4d9de0; color: #fff; }
+    .shell-action.new:hover { background: #3a8ad0; }
+    .shell-action.open { background: #fff; color: #333; border: 1px solid #ddd; }
+    .shell-action.open:hover { background: #f0f0f0; }
+    .shell-action.cancel { background: #f0f0f0; color: #333; border: 1px solid #ddd; }
+
+    .shell-tabs { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; min-height: 0; }
+    .shell-tab { display: flex; align-items: center; gap: 6px; padding: 9px 10px; border-radius: 8px;
+        background: #fff; border: 1px solid #e5e5e5; cursor: pointer; flex-shrink: 0;
+        font-size: 0.82rem; color: #444; transition: 0.15s; min-width: 0; }
+    .shell-tab:hover { background: #f0f0f0; }
+    .shell-tab.active { background: #e3f2fd; border-color: #b3d7f2; color: #1a6db5; font-weight: 600; }
+    .shell-tab-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+    .shell-tab-close { background: none; border: none; color: #999; cursor: pointer; font-size: 0.78rem;
+        font-family: inherit; padding: 3px 5px; border-radius: 5px; line-height: 1; flex-shrink: 0; }
+    .shell-tab-close:hover { color: #e05a4f; background: #fbe9e7; }
+
+    .shell-content { flex: 1; min-width: 0; position: relative; background: #fff; }
+    .shell-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: none; }
+    .shell-frame.active { display: block; }
+
+    .shell-empty { position: absolute; inset: 0; display: none; flex-direction: column;
+        align-items: center; justify-content: center; gap: 12px; color: #888; }
+    .shell-empty.show { display: flex; }
+    .shell-empty-emoji { font-size: 2.4rem; }
+    .shell-empty-text { font-size: 0.95rem; font-weight: 600; color: #555; }
+    .shell-empty .shell-action { width: 220px; }
+
+    /* ---- Модал: отваряне по Room ID ---- */
+    .shell-modal { position: fixed; inset: 0; z-index: 1500; display: none; align-items: center; justify-content: center; }
+    .shell-modal.open { display: flex; }
+    .shell-modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+    .shell-modal-box { position: relative; background: #fff; border-radius: 12px; padding: 22px;
+        width: min(92vw, 340px); box-shadow: 0 10px 40px rgba(0,0,0,0.18);
+        display: flex; flex-direction: column; gap: 14px; }
+    .shell-modal-title { font-size: 1rem; font-weight: 700; color: #222; }
+    .shell-modal-input { width: 100%; height: 44px; padding: 11px 14px; border: 1px solid #ddd;
+        border-radius: 8px; font-size: 0.95rem; color: #222; background: #fff; outline: none;
+        text-align: center; font-family: inherit; }
+    .shell-modal-input:focus { border-color: #4d9de0; }
+    .shell-modal-btns { display: flex; gap: 8px; }
+    .shell-modal-btns .shell-action { flex: 1; height: 42px; width: auto; }
+
+    /* Футер на сайдбара за бутоните (Десктоп) */
+    .shell-footer {
+        display: flex; flex-direction: column; gap: 8px;
+        padding-top: 10px; border-top: 1px solid #eaeaea; flex-shrink: 0;
+    }
+    .shell-footer .shell-action { width: 100%; height: 36px; font-size: 0.8rem; }
+
+    /* ---- Мобилно: таб-лента отгоре, като в браузър ---- */
+    @media (max-width: 480px) {
+        #chatShell { flex-direction: column; }
+        .shell-topbar { width: 100%; height: auto; flex-direction: row; align-items: center; gap: 6px;
+            padding: 6px 8px; padding-top: calc(6px + env(safe-area-inset-top, 0px));
+            background: #fff; border-right: none; border-bottom: 1px solid #eaeaea; overflow: visible; }
+        .shell-actions { flex-direction: row; gap: 6px; flex-shrink: 0; }
+        .shell-action span { display: none; }
+        .shell-action { width: 34px; height: 34px; padding: 0; flex-shrink: 0; }
+        .shell-tabs { flex-direction: row; flex: 1; min-width: 0; gap: 6px; padding: 2px
+         }
+    </style>
+
+        <!-- ============ SHELL ДОБАВКА 1/2 КРАЙ============ -->
+
+</head>
+<body>
+
+    <div class="container">
+        <div class="chat-header">
+            <div class="room-info">
+                <h1 id="roomLinkDisplay">💬<span class="online-count" id="onlineCount"></span></h1>
+            </div>
+            <div class="header-actions" id="headerActions">
+                <button class="action-btn" id="tgBtn" type="button" title="Известия">
+                    <iconify-icon icon="mdi:telegram" width="15"></iconify-icon>
+                    <span class="btn-text">известия</span>
+                </button>
+                <button class="tg-status" id="tgStatus" type="button"></button>
+                <button class="action-btn" id="logoutBtn" type="button" title="Отписване">
+                    <iconify-icon icon="mdi:logout" width="15"></iconify-icon> <span class="btn-text">Отписване</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="login-section" id="loginSection"></div>
+
+        <div class="chat-section" id="chatSection">
+            <div class="chat-messages" id="chatMessages"></div>
+
+            <div class="reply-bar" id="replyBar">
+                <div class="reply-bar-content">
+                    <div class="reply-bar-nick" id="replyBarNick"></div>
+                    <div class="reply-bar-text" id="replyBarText"></div>
+                </div>
+                <button class="reply-bar-close" id="replyBarClose" type="button">✕</button>
+            </div>
+
+            <div class="typing-indicator" id="typingIndicator">
+                <span class="typing-dots"><span></span><span></span><span></span></span>
+                <span id="typingText"></span>
+            </div>
+
+            <div id="emojiPickerWrapper">
+                <emoji-picker id="emojiPicker"></emoji-picker>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="file" id="fileInput" style="display: none;">
+                <button class="input-action-btn" id="emojiBtn" title="Емоджита" type="button">😊</button>
+                <button class="input-action-btn" id="attachBtn" title="Прикачи файл" type="button">📎</button>
+                <button class="input-action-btn" id="cameraBtn" title="Камера" type="button">📷</button>
+                <input type="text" class="chat-input" id="messageInput" placeholder="Напиши съобщение..." maxlength="500" autocomplete="off">
+                <button class="send-btn" id="sendBtn" type="button">➤</button>
+            </div>
+
+            <!-- НОВИЯТ ФУТЕР -->
+            <div class="chat-footer" id="chatFooter" style="display: none; flex-wrap: wrap; gap: 5px 15px;">
+                <a id="footerDate" class="footer-link-btn" href="/chat/readme.html" target="_blank" rel="noopener noreferrer" title="За чата...">🌐 За чата...</a>
+                <div class="footer-actions">
+                    <button class="footer-link-btn" id="linkBtn" type="button" title="Копирай връзка към стаята">🔗 Връзка</button>
+                    <button class="footer-link-btn" id="embedBtn" type="button" title="Копирай код за вграждане">🛠️ Вграждане</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox-overlay" id="lightboxOverlay"></div>
+        <img class="lightbox-img" id="lightboxImg" src="">
+        <button class="lightbox-close" id="lightboxClose" type="button">✕</button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const secureFetch = (url, options = {}) => {
+            return fetch(url, options);
+        };
+
+        const db = window.supabase.createClient(
+            'https://binkkbylyakmmnqpmxly.supabase.co', 
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpbmtrYnlseWFrbW1ucXBteGx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4Njk5MzgsImV4cCI6MjEwMzQ0NTkzOH0.BiqDq0Ooyps5BH69tcZ3xwS78_FJtpnJXYsjybmKDvU',
+            { global: { fetch: secureFetch } }
+        );
+
+        const loginSection = document.getElementById('loginSection');
+        const chatSection = document.getElementById('chatSection');
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const toastEl = document.getElementById('toast');
+        const linkBtn = document.getElementById('linkBtn');
+        const embedBtn = document.getElementById('embedBtn');
+        const roomLinkDisplay = document.getElementById('roomLinkDisplay');
+        const emojiBtn = document.getElementById('emojiBtn');
+        const attachBtn = document.getElementById('attachBtn');
+        const cameraBtn = document.getElementById('cameraBtn');
+        const fileInput = document.getElementById('fileInput');
+        const emojiPickerWrapper = document.getElementById('emojiPickerWrapper');
+        const emojiPicker = document.getElementById('emojiPicker');
+        const replyBar = document.getElementById('replyBar');
+        const replyBarNick = document.getElementById('replyBarNick');
+        const replyBarText = document.getElementById('replyBarText');
+        const replyBarClose = document.getElementById('replyBarClose');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const typingText = document.getElementById('typingText');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        const lightboxOverlay = document.getElementById('lightboxOverlay');
+        const lightboxClose = document.getElementById('lightboxClose');
+        const tgBtn = document.getElementById('tgBtn');
+        const tgStatus = document.getElementById('tgStatus');
+        const headerActions = document.getElementById('headerActions');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        const TG_BOT_USERNAME = 'izvchatbot';
+
+        let currentUser = '';
+        let roomId = null;
+        let realtimeChannel = null;
+        let replyTo = null;
+        let roomPin = null;
+        const processedIds = new Set();
+        const MAX_FILE_SIZE = 15 * 1024 * 1024;
+        let telegramEnabled = null;
+        let lastSeenInterval = null;
+
+        let pollingTimer = null;
+        let lastPollTimestamp = null;
+
+        function startPolling() {
+            stopPolling();
+            pollingTimer = setInterval(async () => {
+                if (!roomId) return;
+                try {
+                    let query = db.from('messages')
+                        .select('*')
+                        .eq('room', roomId)
+                        .order('created_at', { ascending: true });
+
+                    if (lastPollTimestamp) {
+                        query = query.gt('created_at', lastPollTimestamp);
+                    } else {
+                        query = query.limit(50);
+                    }
+
+                    const { data, error } = await query;
+                    if (error || !data || !data.length) return;
+
+                    let added = false;
+                    for (const msg of data) {
+                        if (!processedIds.has(msg.id) && msg.nickname !== 'Система') {
+                            processedIds.add(msg.id);
+                            try { await addMessageToScreen(msg); added = true; } catch(e) { console.error('Polling render error:', e); }
+                        }
+                    }
+                    if (added) {
+                        lastPollTimestamp = data[data.length - 1].created_at;
+                    }
+                } catch(e) { /* тихо */ }
+            }, 3000);
+        }
+
+        function stopPolling() {
+            if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlRoomId = urlParams.get('room');
+
+        let encryptionKey = null; 
+
+        function generateSecurePassword(length = 20) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const array = new Uint32Array(length);
+            crypto.getRandomValues(array);
+            return Array.from(array, x => chars[x % chars.length]).join('');
+        }
+
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            bytes.forEach(b => binary += String.fromCharCode(b));
+            return btoa(binary);
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return bytes.buffer;
+        }
+
+        async function deriveKey(pass, room) {
+            const enc = new TextEncoder();
+            const salt = enc.encode('chat-e2ee-salt:' + room);
+            const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]);
+            return await crypto.subtle.deriveKey(
+                { name: "PBKDF2", salt: salt, iterations: 600000, hash: "SHA-256" },
+                keyMaterial,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+            );
+        }
+
+        async function encryptText(text, key) {
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const encodedText = new TextEncoder().encode(text);
+            const cipherBuffer = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encodedText);
+            const combined = new Uint8Array(iv.length + cipherBuffer.byteLength);
+            combined.set(iv, 0);
+            combined.set(new Uint8Array(cipherBuffer), iv.length);
+            return arrayBufferToBase64(combined.buffer);
+        }
+
+        async function decryptText(base64Payload, key) {
+            try {
+                const combined = new Uint8Array(base64ToArrayBuffer(base64Payload));
+                const iv = combined.slice(0, 12);
+                const cipherText = combined.slice(12);
+                const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, cipherText);
+                return new TextDecoder().decode(decryptedBuffer);
+            } catch (e) { return null; }
+        }
+
+        async function encryptFile(file, key) {
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const fileBuffer = await file.arrayBuffer();
+            const cipherBuffer = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, fileBuffer);
+            return { encryptedBlob: new Blob([cipherBuffer]), ivBase64: arrayBufferToBase64(iv.buffer) };
+        }
+
+        async function decryptFile(fileDataJson, key) {
+            const fileData = JSON.parse(fileDataJson);
+            const response = await fetch(fileData.url);
+            const encryptedBuffer = await response.arrayBuffer();
+            const iv = new Uint8Array(base64ToArrayBuffer(fileData.iv));
+            const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, encryptedBuffer);
+            const blob = new Blob([decryptedBuffer], { type: fileData.originalType });
+            return URL.createObjectURL(blob);
+        }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            if (toastTimer) clearTimeout(toastTimer);
+            toastEl.innerText = msg;
+            toastEl.classList.add('show');
+            toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2500);
+        }
+
+        async function checkTelegramStatus() {
+            if (!roomId || !currentUser) return;
+            try {
+                const { data, error } = await db.from('telegram_subs').select('enabled').eq('room', roomId).eq('nickname', currentUser);
+                if (error) {
+                    telegramEnabled = null;
+                } else if (data && data.length > 0) {
+                    telegramEnabled = data[0].enabled;
+                } else {
+                    telegramEnabled = null;
+                }
+            } catch(e) { 
+                telegramEnabled = null; 
+            }
+            updateTelegramUI();
+        }
+
+        function updateTelegramUI() {
+            if (telegramEnabled === true) {
+                tgBtn.style.display = 'none';
+                tgStatus.style.display = 'inline-flex';
+                tgStatus.className = 'tg-status enabled';
+                tgStatus.innerHTML = '<iconify-icon icon="mdi:bell-check-outline" width="20"></iconify-icon>';
+                tgStatus.title = 'Известията са включени (Натисни за да спреш през Телеграм)';
+            } else if (telegramEnabled === false) {
+                tgBtn.style.display = 'none';
+                tgStatus.style.display = 'inline-flex';
+                tgStatus.className = 'tg-status disabled';
+                tgStatus.innerHTML = '<iconify-icon icon="mdi:bell-off-outline" width="20"></iconify-icon>';
+                tgStatus.title = 'Известията са спрени (Натисни за включване през Телеграм)';
+            } else {
+                tgBtn.style.display = 'flex';
+                tgStatus.style.display = 'none';
+                tgStatus.className = 'tg-status';
+                tgStatus.innerHTML = '';
+                tgStatus.title = '';
+            }
+        }
+
+        // Обединена логика за копиране и отваряне на Телеграм
+        function handleTelegramClick() {
+            if (!roomId || !currentUser) return;
+            
+            const utf8Bytes = new TextEncoder().encode(roomId + ':' + currentUser);
+            const base64String = btoa(String.fromCharCode(...utf8Bytes));
+            const payload = base64String.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            
+            let command = '';
+            if (telegramEnabled === true) {
+                // Включено -> искаме да спрем
+                command = '/stop ' + roomId;
+            } else {
+                // Изключено/Неактивирано -> искаме да включим
+                command = '/start ' + payload;
+            }
+            
+            const tgUrl = 'https://t.me/' + TG_BOT_USERNAME;
+            
+            navigator.clipboard.writeText(command).then(() => {
+                showToast('📋 Командата е копирана. Отваряне на Telegram след 3 секунди...');
+                // Забавяне от 3 секунди, за да може потребителят да прочете съобщението
+                setTimeout(() => {
+                    window.open(tgUrl, '_blank');
+                }, 3000);
+            }).catch(() => {
+                // Ако клипбордът блокира, просто отваряме бота след 3 секунди
+                showToast('Отвори бота след 3 сек и изпрати: ' + command);
+                setTimeout(() => {
+                    window.open(tgUrl, '_blank');
+                }, 3000);
+            });
+        }
+
+        tgBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleTelegramClick();
+        });
+
+        tgStatus.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleTelegramClick();
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            stopPolling();
+            stopLastSeenUpdates();
+            if (realtimeChannel) {
+                realtimeChannel.untrack();
+                db.removeChannel(realtimeChannel);
+                realtimeChannel = null;
+            }
+
+            localStorage.removeItem('chat_nickname');
+            currentUser = '';
+            processedIds.clear();
+            chatMessages.innerHTML = '';
+            telegramEnabled = null;
+            updateTelegramUI();
+
+            chatSection.classList.remove('active');
+            headerActions.style.display = 'none';
+            logoutBtn.style.display = 'none';
+            document.getElementById('chatFooter').style.display = 'none';
+            
+            if (roomId && roomPin) {
+                showLoginView('join-pin');
+            } else if (roomId) {
+                showLoginView('join');
+            } else {
+                showLoginView('create');
+            }
+        });
+
+        async function updateLastSeen() {
+            if (!roomId || !currentUser) return;
+            try {
+                await db.rpc('update_last_seen', { p_room: roomId, p_nickname: currentUser });
+            } catch(e) {}
+        }
+
+        function startLastSeenUpdates() { updateLastSeen(); lastSeenInterval = setInterval(updateLastSeen, 25000); }
+        function stopLastSeenUpdates() { if (lastSeenInterval) { clearInterval(lastSeenInterval); lastSeenInterval = null; } }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) { stopLastSeenUpdates(); stopPolling(); }
+            else { 
+                if (currentUser && roomId) {
+                    startLastSeenUpdates(); 
+                    startPolling(); 
+                    checkTelegramStatus(); 
+                }
+            }
+        });
+
+        function showLoginView(mode) {
+            const views = {
+                create: `
+                    <div class="login-title">Създай нов чат</div>
+                    <div class="key-gen-row">
+                        <input type="text" class="login-input" id="nicknameInput" placeholder="Твоят псевдоним..." maxlength="20" autofocus>
+                    </div>
+                    <div class="key-gen-row">
+                        <div class="login-input-wrapper">
+                            <input type="password" class="login-input" id="pinCreateInput" placeholder="Ключ по желание..." style="text-align: left; padding-left: 12px; padding-right: 40px;" autocomplete="new-password">
+                            <button type="button" class="toggle-pass-btn" data-target="pinCreateInput">
+                                <iconify-icon icon="mdi:eye-off-outline" width="20"></iconify-icon>
+                            </button>
+                        </div>
+                        <button class="key-gen-btn" id="genKeyBtn" type="button">Генерирай</button>
+                    </div>
+                    <div class="login-hint">🔐 Ако въведеш ключ, ще създадеш криптирана стая (E2EE).</div>
+                    <button class="login-btn" id="loginBtn" type="button">Създай и влез</button>`,
+                join: `
+                    <div class="login-title">Влез в чата</div>
+                    <div class="login-subtitle">Въведи псевдоним, за да се включиш</div>
+                    <input type="text" class="login-input" id="nicknameInput" placeholder="Твоят псевдоним..." maxlength="20" autofocus>
+                    <button class="login-btn" id="loginBtn" type="button">Влез</button>`,
+                'join-pin': `
+                    <div class="login-title">🔒 Чатът е криптиран</div>
+                    <div class="login-subtitle">Въведи ключа за достъп, после псевдоним</div>
+                    <div class="login-input-wrapper">
+                        <input type="password" class="login-input" id="pinInput" placeholder="Ключ за криптиране" style="text-align: left; padding-left: 12px; padding-right: 40px;" autocomplete="new-password" autofocus>
+                        <button type="button" class="toggle-pass-btn" data-target="pinInput">
+                            <iconify-icon icon="mdi:eye-off-outline" width="20"></iconify-icon>
+                        </button>
+                    </div>
+                    <input type="text" class="login-input" id="nicknameInput" placeholder="Твоят псевдоним..." maxlength="20">
+                    <button class="login-btn" id="loginBtn" type="button">Влез</button>`,
+                'wrong-pin': `
+                    <div class="login-title">❌ Грешен ключ</div>
+                    <div class="login-subtitle error-text">Опитай отново</div>
+                    <div class="login-input-wrapper">
+                        <input type="password" class="login-input" id="pinInput" placeholder="Ключ за криптиране" style="text-align: left; padding-left: 12px; padding-right: 40px;" autocomplete="new-password" autofocus>
+                        <button type="button" class="toggle-pass-btn" data-target="pinInput">
+                            <iconify-icon icon="mdi:eye-off-outline" width="20"></iconify-icon>
+                        </button>
+                    </div>
+                    <input type="text" class="login-input" id="nicknameInput" placeholder="Твоят псевдоним..." maxlength="20">
+                    <button class="login-btn" id="loginBtn" type="button">Влез</button>`,
+                error: `
+                    <div class="login-title">❌ Чатът не е намерен</div>
+                    <div class="login-subtitle error-text">Тази стая е изтрита или никога не е съществувала.</div>`
+            };
+            loginSection.innerHTML = views[mode] || '';
+            loginSection.style.display = 'flex';
+            bindLoginEvents();
+        }
+
+        function bindLoginEvents() {
+            const btn = document.getElementById('loginBtn');
+            const nick = document.getElementById('nicknameInput');
+            if (btn) btn.addEventListener('click', handleLogin);
+            if (nick) nick.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLogin(); });
+            
+            const genBtn = document.getElementById('genKeyBtn');
+            if (genBtn) {
+                genBtn.addEventListener('click', () => {
+                    const pass = generateSecurePassword(20);
+                    const input = document.getElementById('pinCreateInput');
+                    input.value = pass;
+                    input.type = 'text';
+                    const toggleBtn = document.querySelector('.toggle-pass-btn[data-target="pinCreateInput"]');
+                    if (toggleBtn) toggleBtn.innerHTML = '<iconify-icon icon="mdi:eye-outline" width="20"></iconify-icon>';
+                    navigator.clipboard.writeText(pass).then(() => showToast('✅ Ключът е генериран и копиран!'));
+                });
+            }
+
+            const pinIn = document.getElementById('pinInput');
+            if (pinIn) pinIn.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); (nick || btn)?.focus(); } });
+
+            document.querySelectorAll('.toggle-pass-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = btn.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    if (!input) return;
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        btn.innerHTML = '<iconify-icon icon="mdi:eye-outline" width="20"></iconify-icon>';
+                    } else {
+                        input.type = 'password';
+                        btn.innerHTML = '<iconify-icon icon="mdi:eye-off-outline" width="20"></iconify-icon>';
+                    }
+                });
+            });
+        }
+
+        async function checkRoomExists() {
+            const { count, error } = await db.from('rooms')
+                .select('*', { count: 'exact', head: true })
+                .eq('room', roomId);
+            return !error && count > 0;
+        }
+
+        async function getRoomPin() {
+            try {
+                const { data, error } = await db.from('rooms').select('pin').eq('room', roomId).single();
+                if (error || !data) return null;
+                return data.pin || null;
+            } catch (e) { return null; }
+        }
+
+        async function initApp() {            
+            if (urlRoomId) {
+                roomId = urlRoomId;
+                
+                const exists = await checkRoomExists();
+                if (!exists) { 
+                    showLoginView('error'); 
+                    return; 
+                }
+
+                const pin = await getRoomPin();
+                
+                if (pin) {
+                    roomPin = pin;
+                    showLoginView('join-pin');
+                } else {
+                    const saved = localStorage.getItem('chat_nickname');
+                    if (saved) {
+                        enterChat(saved);
+                    } else {
+                        showLoginView('join');
+                    }
+                }
+            } else {
+                showLoginView('create');
+            }
+        }
+
+        async function handleLogin() {
+            const nickEl = document.getElementById('nicknameInput');
+            const name = nickEl ? nickEl.value.trim() : '';
+            if (name.length < 2) { showToast('Името трябва да е поне 2 символа.'); return; }
+            
+            currentUser = name;
+            localStorage.setItem('chat_nickname', name);
+
+            if (!roomId) {
+                roomId = Math.random().toString(36).substring(2, 8);
+                window.history.replaceState({}, '', '?room=' + roomId);
+
+                const pinCreateEl = document.getElementById('pinCreateInput');
+                const pinVal = pinCreateEl ? pinCreateEl.value.trim() : '';
+                
+                if (pinVal) {
+                    if (pinVal.length < 10) { showToast('Ключът трябва да е поне 10 символа.'); return; }
+                    encryptionKey = await deriveKey(pinVal, roomId); 
+                }
+
+                const roomPayload = { room: roomId, created_by: name };
+                if (pinVal) roomPayload.pin = pinVal; 
+                
+                await db.from('rooms').insert([roomPayload]);
+
+                const { data: initData, error: initError } = await db.rpc('send_message', { 
+                    p_payload: { 
+                        room: roomId, 
+                        nickname: 'Система', 
+                        text: ' ', 
+                        reply_nick: null, 
+                        reply_text: null, 
+                        file_url: null, 
+                        is_image: false 
+                    } 
+                });
+
+                if (initError) { 
+                    console.error('System msg error:', initError);
+                    showToast('Грешка при създаване на стая!'); 
+                    return; 
+                }
+                if (initData?.length) processedIds.add(initData[0].id);
+            } else {
+                if (roomPin) {
+                    encryptionKey = await deriveKey(roomPin, roomId); 
+                }
+            }
+
+            enterChat(name);
+        }
+
+        async function enterChat(name) {
+            currentUser = name;
+            loginSection.style.display = 'none';
+            chatSection.classList.add('active');
+            headerActions.style.display = 'flex'; 
+            logoutBtn.style.display = 'flex';
+            document.getElementById('chatFooter').style.display = 'flex';
+            
+            const lockIcon = encryptionKey ? '🔐 ' : '';
+            roomLinkDisplay.innerHTML = lockIcon + '💬 ' + roomId + '<span class="online-count" id="onlineCount"></span>';
+            
+            messageInput.focus();
+            await loadMessages();
+            listenForNewMessages();
+            startPolling();
+            checkTelegramStatus();
+            startLastSeenUpdates();
+        }
+
+        linkBtn.addEventListener('click', () => {
+            const url = window.location.origin + window.location.pathname + '?room=' + roomId;
+            navigator.clipboard.writeText(url).then(() => showToast('✅ Връзката за споделяне е копирана!'));
+        });
+        
+        embedBtn.addEventListener('click', () => {
+            const url = window.location.origin + window.location.pathname + '?room=' + roomId;
+            navigator.clipboard.writeText('<iframe src="' + url + '" style="width:100%;height:600px;border:none;overflow:hidden;"></iframe>')
+                .then(() => showToast('✅ Кодът за вграждане е копиран!'));
+        });
+
+        function getEmojiPickerBottom() {
+            let b = 65;
+            if (replyBar.style.display !== 'none') b += replyBar.offsetHeight;
+            if (typingIndicator.style.display !== 'none') b += typingIndicator.offsetHeight;
+            return b + 'px';
+        }
+        emojiBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            emojiPickerWrapper.style.bottom = getEmojiPickerBottom();
+            emojiPickerWrapper.classList.toggle('open');
+        });
+        document.addEventListener('click', (e) => {
+            if (!emojiPickerWrapper.contains(e.target) && e.target !== emojiBtn) emojiPickerWrapper.classList.remove('open');
+        });
+        emojiPicker.addEventListener('emoji-click', event => {
+            const emoji = event.detail.unicode;
+            messageInput.value += emoji;
+            messageInput.focus();
+            emojiPickerWrapper.classList.remove('open');
+        });
+
+        attachBtn.addEventListener('click', () => { fileInput.removeAttribute('capture'); fileInput.click(); });
+        cameraBtn.addEventListener('click', () => { fileInput.setAttribute('capture', 'environment'); fileInput.click(); });
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > MAX_FILE_SIZE) {
+                const mb = (MAX_FILE_SIZE / 1024 / 1024).toFixed(0);
+                showToast('❌ Файлът е твърде голям (макс. ' + mb + 'MB)');
+                fileInput.value = '';
+                return;
+            }
+
+            sendBtn.disabled = true;
+            showToast('⏳ Качване...');
+
+            const isImage = file.type.startsWith('image/');
+            const ext = file.name.split('.').pop() || 'bin';
+            const storagePath = roomId + '/' + Date.now() + '-' + Math.random().toString(36).substring(2, 6) + '.' + ext;
+
+            try {
+                let finalFileUrl = '';
+                const msgText = isImage ? '' : '📄 ' + file.name;
+
+                if (encryptionKey) {
+                    const { encryptedBlob, ivBase64 } = await encryptFile(file, encryptionKey);
+                    const { error: uploadErr } = await db.storage.from('chat-files').upload(storagePath, encryptedBlob, { contentType: 'application/octet-stream' });
+                    if (uploadErr) throw uploadErr;
+                    const { data: urlData } = db.storage.from('chat-files').getPublicUrl(storagePath);
+                    finalFileUrl = JSON.stringify({ url: urlData.publicUrl, iv: ivBase64, originalName: file.name, originalType: file.type });
+                } else {
+                    const { error: uploadErr } = await db.storage.from('chat-files').upload(storagePath, file);
+                    if (uploadErr) throw uploadErr;
+                    const { data: urlData } = db.storage.from('chat-files').getPublicUrl(storagePath);
+                    finalFileUrl = urlData.publicUrl;
+                }
+
+                const { data, error } = await db.rpc('send_message', { 
+                    p_payload: { 
+                        room: roomId, 
+                        nickname: currentUser, 
+                        text: msgText, 
+                        reply_nick: replyTo?.nick || null, 
+                        reply_text: null, 
+                        file_url: finalFileUrl, 
+                        is_image: isImage 
+                    } 
+                });
+
+                if (error) throw error;
+                if (data?.length) {
+                    processedIds.add(data[0].id);
+                    addMessageToScreen(data[0]);
+                }
+            } catch (err) {
+                console.error('Upload error:', err);
+                showToast('Грешка при качване!');
+            }
+
+            fileInput.value = '';
+            sendBtn.disabled = false;
+            clearReply();
+        });
+
+        function openLightbox(src) { lightboxImg.src = src; lightbox.classList.add('open'); }
+        function closeLightbox() { 
+            lightbox.classList.remove('open'); 
+            if (lightboxImg.src.startsWith('blob:')) {
+                URL.revokeObjectURL(lightboxImg.src);
+            }
+            lightboxImg.src = ''; 
+        }
+        lightboxOverlay.addEventListener('click', closeLightbox);
+        lightboxClose.addEventListener('click', closeLightbox);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+
+        function setReply(nick, text) {
+            replyTo = { nick, text };
+            replyBarNick.textContent = nick;
+            replyBarText.textContent = text.length > 60 ? text.substring(0, 60) + '...' : text;
+            replyBar.style.display = 'flex';
+            messageInput.focus();
+        }
+        function clearReply() { replyTo = null; replyBar.style.display = 'none'; }
+        replyBarClose.addEventListener('click', (e) => { e.stopPropagation(); clearReply(); messageInput.focus(); });
+
+        async function deleteMessage(id, row) {
+            const { data: success, error } = await db.rpc('delete_message', { 
+                p_id: id, 
+                p_nickname: currentUser 
+            });
+            
+            if (!error && success) {
+                row.style.transition = '0.3s';
+                row.style.opacity = '0';
+                row.style.transform = 'scale(0.8)';
+                setTimeout(() => row.remove(), 300);
+            } else {
+                showToast('Грешка при изтриване! Може да не сте автор.');
+            }
+        }
+
+        function getTime(iso) {
+            const d = new Date(iso);
+            return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+        }
+
+        async function addMessageToScreen(msg) {
+            if (msg.nickname === 'Система') return;
+            const isMe = msg.nickname === currentUser;
+            const row = document.createElement('div');
+            row.className = 'message-row' + (isMe ? ' self' : '');
+            row.dataset.msgId = msg.id;
+
+            let displayText = msg.text;
+            let displayReplyText = msg.reply_text;
+            let displayFileUrl = msg.file_url;
+
+            if (encryptionKey) {
+                if (displayText) displayText = await decryptText(displayText, encryptionKey);
+                if (displayReplyText) displayReplyText = await decryptText(displayReplyText, encryptionKey);
+                if (displayFileUrl) {
+                    try { displayFileUrl = await decryptFile(displayFileUrl, encryptionKey); } catch (e) { displayFileUrl = null; }
+                }
+                
+                if (displayText === null && msg.text) displayText = '🔒 Грешка при дешифриране';
+                if (displayReplyText === null && msg.reply_text) displayReplyText = '🔒 Грешка при дешифриране';
+            }
+
+            const hdr = document.createElement('div');
+            hdr.className = 'msg-header';
+            const nick = document.createElement('span');
+            nick.className = 'msg-nickname'; nick.textContent = msg.nickname;
+            const time = document.createElement('span');
+            time.className = 'msg-time'; time.textContent = getTime(msg.created_at);
+            const spacer = document.createElement('span');
+            spacer.className = 'msg-spacer';
+
+            const rbtn = document.createElement('button');
+            rbtn.className = 'msg-action-btn msg-reply-btn'; rbtn.innerText = '↩'; rbtn.title = 'Отговор';
+            rbtn.onclick = (e) => { e.stopPropagation(); setReply(msg.nickname, displayText || '📎 Файл'); };
+
+            hdr.append(nick, time, spacer, rbtn);
+            if (isMe) {
+                const dbtn = document.createElement('button');
+                dbtn.className = 'msg-action-btn msg-delete-btn'; dbtn.innerText = '✕'; dbtn.title = 'Изтрий';
+                dbtn.onclick = (e) => { e.stopPropagation(); deleteMessage(msg.id, row); };
+                hdr.appendChild(dbtn);
+            }
+            row.appendChild(hdr);
+
+            if (msg.reply_nick && displayReplyText) {
+                const rd = document.createElement('div'); rd.className = 'msg-reply';
+                const rn = document.createElement('span'); rn.className = 'msg-reply-nick'; rn.textContent = msg.reply_nick;
+                const rt = document.createElement('span'); rt.className = 'msg-reply-text';
+                rt.textContent = displayReplyText.length > 60 ? displayReplyText.substring(0, 60) + '...' : displayReplyText;
+                rd.append(rn, rt); row.appendChild(rd);
+            }
+
+            if (msg.is_image && displayFileUrl) {
+                const img = document.createElement('img');
+                img.src = displayFileUrl; img.className = 'msg-image'; img.loading = 'lazy';
+                img.onclick = () => openLightbox(displayFileUrl);
+                row.appendChild(img);
+            } else if (!msg.is_image && displayFileUrl) {
+                const a = document.createElement('a');
+                a.className = 'msg-file'; a.href = displayFileUrl;
+                a.download = (displayText || '').replace('📄 ', '') || 'файл';
+                a.target = '_blank'; a.rel = 'noopener';
+                a.textContent = displayText || '📎 Файл';
+                row.appendChild(a);
+            }
+
+            if (displayText && !msg.file_url) {
+                const td = document.createElement('div');
+                td.className = 'msg-text'; td.textContent = displayText;
+                row.appendChild(td);
+            }
+
+            if (msg.id && chatMessages.querySelector('[data-msg-id="' + msg.id + '"]')) {
+                return;
+            }
+
+            chatMessages.appendChild(row);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function loadMessages() {
+            const { data, error } = await db.from('messages').select('*').eq('room', roomId).order('created_at', { ascending: true }).limit(100);
+            if (!error && data) {
+                for (const msg of data) {
+                    processedIds.add(msg.id);
+                    await addMessageToScreen(msg);
+                }
+                if (data.length > 0) {
+                    lastPollTimestamp = data[data.length - 1].created_at;
+                }
+            }
+        }
+
+        let typingUsers = new Map();
+        let typingHideTimer = null;
+        let lastTypingSent = 0;
+
+        function updateTypingUI() {
+            if (typingUsers.size === 0) { typingIndicator.style.display = 'none'; return; }
+            const names = [...typingUsers.keys()];
+            typingText.textContent = names.length === 1 ? names[0] + ' пише...' : names.slice(0, 2).join(' и ') + (names.length > 2 ? ' и др.' : '') + ' пишат...';
+            typingIndicator.style.display = 'flex';
+        }
+
+        function listenForNewMessages() {
+            if (realtimeChannel) db.removeChannel(realtimeChannel);
+
+            realtimeChannel = db.channel('room-' + roomId)
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'room=eq.' + roomId }, payload => {
+                    if (processedIds.has(payload.new.id)) { processedIds.delete(payload.new.id); return; }
+                    processedIds.add(payload.new.id);
+                    if (payload.new.created_at && (!lastPollTimestamp || payload.new.created_at > lastPollTimestamp)) {
+                        lastPollTimestamp = payload.new.created_at;
+                    }
+                    addMessageToScreen(payload.new);
+                })
+                .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages', filter: 'room=eq.' + roomId }, payload => {
+                    const deletedId = payload.old.id;
+                    const rowToDelete = chatMessages.querySelector('[data-msg-id="' + deletedId + '"]');
+                    
+                    if (rowToDelete) {
+                        rowToDelete.style.transition = '0.3s';
+                        rowToDelete.style.opacity = '0';
+                        rowToDelete.style.transform = 'scale(0.8)';
+                        setTimeout(() => rowToDelete.remove(), 300);
+                    }
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'telegram_subs', filter: 'room=eq.' + roomId + '&nickname=eq.' + currentUser }, payload => {
+                    if (payload.new && payload.new.enabled !== undefined) {
+                        telegramEnabled = payload.new.enabled;
+                        updateTelegramUI();
+                    }
+                })
+                .on('broadcast', { event: 'typing' }, payload => {
+                    if (payload.payload.nickname === currentUser) return;
+                    typingUsers.set(payload.payload.nickname, Date.now());
+                    updateTypingUI();
+                    if (typingHideTimer) clearTimeout(typingHideTimer);
+                    typingHideTimer = setTimeout(() => { typingUsers.clear(); updateTypingUI(); }, 3000);
+                })
+                .on('presence', { event: 'sync' }, () => {
+                    const state = realtimeChannel.presenceState();
+                    const count = Object.keys(state).length;
+                    const el = document.getElementById('onlineCount');
+                    if (el) el.textContent = count > 1 ? '(' + count + ' на линия)' : '';
+                })
+                .subscribe((status, err) => {
+                    if (status === 'SUBSCRIBED') {
+                        realtimeChannel.track({ user: currentUser });
+                    } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                        console.warn('Realtime неуспешен (' + status + '), полингът ще поеме:', err);
+                    }
+                });
+        }
+
+        messageInput.addEventListener('input', () => {
+            const now = Date.now();
+            if (now - lastTypingSent > 2000 && messageInput.value.trim() && realtimeChannel) {
+                lastTypingSent = now;
+                realtimeChannel.send({ type: 'broadcast', event: 'typing', payload: { nickname: currentUser } });
+            }
+        });
+
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+            sendBtn.disabled = true;
+            messageInput.value = '';
+
+            let finalText = text;
+            let finalReplyText = replyTo?.text || null;
+
+            if (encryptionKey) {
+                finalText = await encryptText(text, encryptionKey);
+                if (finalReplyText) finalReplyText = await encryptText(finalReplyText, encryptionKey);
+            }
+
+            try {
+                const { data, error } = await db.rpc('send_message', { 
+                    p_payload: { 
+                        room: roomId, 
+                        nickname: currentUser, 
+                        text: finalText, 
+                        reply_nick: replyTo?.nick || null, 
+                        reply_text: finalReplyText || null, 
+                        file_url: null, 
+                        is_image: false 
+                    } 
+                });
+                
+                if (error) {
+                    showToast('Грешка при изпращане!');
+                    messageInput.value = text;
+                } else if (data?.length) {
+                    processedIds.add(data[0].id);
+                    if (data[0].created_at && (!lastPollTimestamp || data[0].created_at > lastPollTimestamp)) {
+                        lastPollTimestamp = data[0].created_at;
+                    }
+                    addMessageToScreen(data[0]);
+                }
+            } catch (err) {
+                console.error('Send error:', err);
+                showToast('Грешка при изпращане!');
+                messageInput.value = text;
+            }
+            
+            sendBtn.disabled = false;
+            clearReply();
+            messageInput.focus();
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+        window.addEventListener('beforeunload', () => {
+            if (realtimeChannel) realtimeChannel.untrack();
+            stopLastSeenUpdates();
+            stopPolling();
+        });
+
+        if (window.self !== window.top) {
+            document.body.classList.add('is-iframe');
+            const c = document.querySelector('.container');
+            c.style.height = '100dvh'; c.style.maxHeight = 'none';
+            c.style.borderRadius = '0'; c.style.border = 'none'; c.style.boxShadow = 'none';
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+    </script>
+
+<!-- ============ SHELL ДОБАВКА 2/2 ============ -->
+<script>
+(function () {
+    if (!window.__SHELL_MODE__) return; // в iframe сме → чист чат, без shell
+
+    var shellToast = function (m) { try { if (typeof showToast === 'function') showToast(m); } catch (e) {} };
+
+    var shell = document.createElement('div');
+    shell.id = 'chatShell';
+    shell.innerHTML =
+        '<div class="shell-topbar">' +
+            '<div class="shell-tabs" id="shellTabs"></div>' +
+            '<div class="shell-actions">' +
+                '<button class="shell-action new" id="shellNewChatBtn" type="button" title="Нов чат"><iconify-icon icon="mdi:plus" width="18"></iconify-icon><span>Нов чат</span></button>' +
+                '<button class="shell-action open" id="shellOpenRoomBtn" type="button" title="Отвори чат по Room ID"><iconify-icon icon="mdi:link-variant" width="18"></iconify-icon><span>Отвори по ID</span></button>' +
+            '</div>' +
+            '<div class="shell-footer">' +
+                '<button class="shell-action open" id="shellCopyLinkBtn" type="button" title="Копирай връзка към активния чат"><iconify-icon icon="mdi:link" width="18"></iconify-icon><span>Връзка</span></button>' +
+                '<button class="shell-action open" id="shellCopyEmbedBtn" type="button" title="Копирай код за вграждане"><iconify-icon icon="mdi:code-tags" width="18"></iconify-icon><span>Вграждане</span></button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="shell-content" id="shellContent">' +
+            '<div class="shell-empty" id="shellEmpty">' +
+                '<div class="shell-empty-emoji">💬</div>' +
+                '<div class="shell-empty-text">Няма отворен чат</div>' +
+                '<button class="shell-action new" id="shellEmptyNewBtn" type="button"><iconify-icon icon="mdi:plus" width="18"></iconify-icon><span>Нов чат</span></button>' +
+                '<button class="shell-action open" id="shellEmptyOpenBtn" type="button"><iconify-icon icon="mdi:link-variant" width="18"></iconify-icon><span>Отвори по ID</span></button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="shell-modal" id="shellModal">' +
+            '<div class="shell-modal-overlay" id="shellModalOverlay"></div>' +
+            '<div class="shell-modal-box">' +
+                '<div class="shell-modal-title">Отвори чат по Room ID</div>' +
+                '<input class="shell-modal-input" id="shellRoomInput" placeholder="Room ID или линк..." autocomplete="off" spellcheck="false">' +
+                '<div class="shell-modal-btns">' +
+                    '<button class="shell-action cancel" id="shellModalCancelBtn" type="button">Откажи</button>' +
+                    '<button class="shell-action new" id="shellModalOkBtn" type="button">Отвори</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    document.body.appendChild(shell);
+
+    var tabsEl = document.getElementById('shellTabs');
+    var contentEl = document.getElementById('shellContent');
+    var emptyEl = document.getElementById('shellEmpty');
+    var modalEl = document.getElementById('shellModal');
+    var roomInput = document.getElementById('shellRoomInput');
+
+    var tabs = [];
+    var activeId = null;
+    var seq = 0;
+
+    function persist() {
+        try {
+            var rooms = [], activeTab = null, i;
+            for (i = 0; i < tabs.length; i++) { if (tabs[i].room) rooms.push(tabs[i].room); if (tabs[i].id === activeId) activeTab = tabs[i]; }
+            sessionStorage.setItem('chat_shell_tabs', JSON.stringify({ rooms: rooms, activeRoom: activeTab ? activeTab.room : null }));
+        } catch (e) {}
+    }
+    function updateEmpty() { emptyEl.classList.toggle('show', tabs.length === 0); }
+
+    function createTab(room, activate) {
+        if (activate === undefined) activate = true;
+        if (room) {
+            for (var i = 0; i < tabs.length; i++) {
+                if (tabs[i].room === room) { activateTab(tabs[i].id); shellToast('💬 Този чат вече е отворен'); return tabs[i]; }
+            }
+        }
+        var id = ++seq;
+        var tabEl = document.createElement('div');
+        tabEl.className = 'shell-tab';
+        tabEl.title = room ? 'Стая ' + room : 'Нов чат';
+        var label = document.createElement('span');
+        label.className = 'shell-tab-label';
+        label.textContent = room ? '💬 ' + room : '✨ Нов чат';
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'shell-tab-close';
+        closeBtn.type = 'button';
+        closeBtn.title = 'Затвори';
+        closeBtn.textContent = '✕';
+        tabEl.appendChild(label);
+        tabEl.appendChild(closeBtn);
+
+        var frame = document.createElement('iframe');
+        frame.className = 'shell-frame';
+        frame.src = window.location.pathname + (room ? '?room=' + encodeURIComponent(room) : '');
+
+        closeBtn.addEventListener('click', function (e) { e.stopPropagation(); closeTab(id); });
+        tabEl.addEventListener('click', function () { activateTab(id); });
+
+        tabsEl.appendChild(tabEl);
+        contentEl.appendChild(frame);
+
+        var tab = { id: id, room: room || null, el: tabEl, label: label, frame: frame };
+        tabs.push(tab);
+        if (activate) activateTab(id); else { updateEmpty(); persist(); }
+        return tab;
+    }
+
+    function activateTab(id) {
+        activeId = id;
+        for (var i = 0; i < tabs.length; i++) {
+            var on = tabs[i].id === id;
+            tabs[i].el.classList.toggle('active', on);
+            tabs[i].frame.classList.toggle('active', on);
+        }
+        for (var j = 0; j < tabs.length; j++) {
+            if (tabs[j].id === id) {
+                try { tabs[j].el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {}
+                try { tabs[j].frame.contentWindow.focus(); } catch (e) {}
+                break;
+            }
+        }
+        updateEmpty();
+        persist();
+    }
+
+    function closeTab(id) {
+        var idx = -1;
+        for (var i = 0; i < tabs.length; i++) if (tabs[i].id === id) { idx = i; break; }
+        if (idx === -1) return;
+        var closed = tabs.splice(idx, 1)[0];
+        closed.el.remove();
+        try { closed.frame.remove(); } catch (e) {}
+        if (activeId === id) {
+            var next = tabs[idx] || tabs[idx - 1];
+            if (next) activateTab(next.id); else { activeId = null; updateEmpty(); }
+        }
+        persist();
+    }
+
+    /* Когато в таб "Нов чат" се създаде стая, iframe-ът сменя URL-а си на ?room=... —
+       засичаме го и преименуваме таба автоматично. */
+    function syncTabRooms() {
+        for (var i = 0; i < tabs.length; i++) {
+            var t = tabs[i];
+            if (t.room) continue;
+            try {
+                var search = t.frame.contentWindow.location.search;
+                if (!search) continue;
+                var r = new URLSearchParams(search).get('room');
+                if (r) {
+                    t.room = r;
+                    t.label.textContent = '💬 ' + r;
+                    t.el.title = 'Стая ' + r;
+                    persist();
+                }
+            } catch (e) {}
+        }
+    }
+    setInterval(syncTabRooms, 700);
+
+    /* --- Модал "Отвори по Room ID" --- */
+    function openModal() {
+        roomInput.value = '';
+        modalEl.classList.add('open');
+        setTimeout(function () { try { roomInput.focus(); } catch (e) {} }, 60);
+    }
+    function closeModal() { modalEl.classList.remove('open'); }
+    
+    function submitRoom() {
+        var raw = roomInput.value.trim();
+        if (!raw) { shellToast('Въведи Room ID или линк'); return; }
+        var room = null;
+        var m = raw.match(/[?&]room=([A-Za-z0-9_-]+)/);
+        if (m) room = m[1];
+        else if (/^[A-Za-z0-9_-]{3,}$/.test(raw)) room = raw;
+        if (!room) { shellToast('❌ Невалидно Room ID'); return; }
+        closeModal();
+        createTab(room);
+    }
+
+    document.getElementById('shellNewChatBtn').addEventListener('click', function () { createTab(null); });
+    document.getElementById('shellEmptyNewBtn').addEventListener('click', function () { createTab(null); });
+    document.getElementById('shellOpenRoomBtn').addEventListener('click', openModal);
+    document.getElementById('shellEmptyOpenBtn').addEventListener('click', openModal);
+    document.getElementById('shellModalCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('shellModalOkBtn').addEventListener('click', submitRoom);
+    document.getElementById('shellModalOverlay').addEventListener('click', closeModal);
+    roomInput.addEventListener('keypress', function (e) { if (e.key === 'Enter') submitRoom(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+    /* Връща стаята на текущо активния таб */
+    function getActiveRoom() {
+        for (var i = 0; i < tabs.length; i++) {
+            if (tabs[i].id === activeId) return tabs[i].room;
+        }
+        return null;
+    }
+
+    document.getElementById('shellCopyLinkBtn').addEventListener('click', function () {
+        var room = getActiveRoom();
+        if (!room) { shellToast('Първо създай или отвори чат.'); return; }
+        var url = window.location.origin + window.location.pathname + '?room=' + encodeURIComponent(room);
+        navigator.clipboard.writeText(url).then(function() {
+            shellToast('✅ Връзката е копирана!');
+        }).catch(function() { shellToast('Грешка при копиране.'); });
+    });
+
+    document.getElementById('shellCopyEmbedBtn').addEventListener('click', function () {
+        var room = getActiveRoom();
+        if (!room) { shellToast('Първо създай или отвори чат.'); return; }
+        var url = window.location.origin + window.location.pathname + '?room=' + encodeURIComponent(room);
+        var embedCode = '<iframe src="' + url + '" style="width:100%;height:600px;border:none;overflow:hidden;"></iframe>';
+        navigator.clipboard.writeText(embedCode).then(function() {
+            shellToast('✅ Кодът за вграждане е копиран!');
+        }).catch(function() { shellToast('Грешка при копиране.'); });
+    });
+
+    /* iOS: при отваряне на клавиатурата свиваме shell-а до видимата част */
+    if (window.visualViewport) {
+        var vv = window.visualViewport;
+        var applyVH = function () {
+            if (window.innerWidth <= 480) shell.style.height = vv.height + 'px';
+            else shell.style.height = '';
+        };
+        vv.addEventListener('resize', applyVH);
+        window.addEventListener('resize', applyVH);
+        applyVH();
+    }
+
+    /* Начално състояние: линк (?room=...) → първи таб; иначе възстановени табове; иначе нов чат */
+    (function init() {
+        var initialRoom = window.__SHELL_INITIAL_ROOM__ || null;
+        if (initialRoom) { createTab(initialRoom); return; }
+        var restored = false;
+        try {
+            var raw = sessionStorage.getItem('chat_shell_tabs');
+            if (raw) {
+                var saved = JSON.parse(raw);
+                if (saved && saved.rooms && saved.rooms.length) {
+                    for (var i = 0; i < saved.rooms.length; i++) {
+                        var r = saved.rooms[i];
+                        if (typeof r === 'string' && r) createTab(r, false);
+                    }
+                    if (tabs.length) {
+                        var target = null;
+                        for (var j = 0; j < tabs.length; j++) if (tabs[j].room === saved.activeRoom) { target = tabs[j]; break; }
+                        if (!target) target = tabs[0];
+                        activateTab(target.id);
+                        restored = true;
+                    }
+                }
+            }
+        } catch (e) {}
+        if (!restored) createTab(null);
+    })();
+})();
+</script>
+<!-- ============ КРАЙ ДОБАВКА 2/2 ============ -->
+
+</body>
+</html>
