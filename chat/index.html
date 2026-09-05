@@ -176,6 +176,26 @@
         .message-row.self .msg-text a { color: #2980b9; }
         .msg-text a:hover { opacity: 0.8; }
         
+        /* Стилове за преглед на обикновени линкове */
+        .msg-link-preview {
+            display: flex; align-items: flex-start; gap: 10px; margin-top: 8px;
+            padding: 10px; border-radius: 8px; border: 1px solid #e0e0e0;
+            background: #fff; text-decoration: none; color: inherit;
+            max-width: 100%; transition: 0.15s;
+        }
+        .msg-link-preview:hover { background: #f8f8f8; border-color: #bbb; }
+        .message-row.self .msg-link-preview { background: #fafcff; }
+        .msg-link-preview .lp-icon {
+            width: 32px; height: 32px; flex-shrink: 0; object-fit: contain; border-radius: 4px;
+            background: #f0f0f0;
+        }
+        .msg-link-preview .lp-content { flex: 1; min-width: 0; }
+        .msg-link-preview .lp-title {
+            font-weight: 600; font-size: 0.9rem; color: #222; margin-bottom: 2px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .msg-link-preview .lp-domain { font-size: 0.75rem; color: #888; }
+
         /* Стилове за YouTube преглед */
         .msg-youtube {
             display: block; position: relative; margin-top: 8px;
@@ -1139,15 +1159,48 @@
                 
                 if (ytMatch && ytMatch[1]) {
                     const videoId = ytMatch[1];
-                    // Връщаме голяма кликваема картинка (thumbnail) с бутон Play
                     return `<a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer" class="msg-youtube"><img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="YouTube Video"><div class="play-icon"></div></a>`;
                 } else {
-                    // Ако не е YouTube, правим нормален кликваем линк
-                    return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>`;
+                    // Слагаме маркер за обикновените линкове
+                    return `<span class="link-placeholder" data-url="${cleanUrl}"><a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a></span>`;
                 }
             });
 
             return escapedText;
+        }
+
+        // Наша собствена функция чрез Supabase Edge Function
+        async function fetchLinkPreview(url, placeholderEl) {
+            try {
+                // Извикваме нашата Edge Function
+                const { data, error } = await db.functions.invoke('link-preview', {
+                    body: { url: url }
+                });
+
+                if (error || !data || (!data.title && !data.favicon)) return;
+
+                const card = document.createElement('a');
+                card.className = 'msg-link-preview';
+                card.href = url;
+                card.target = '_blank';
+                card.rel = 'noopener noreferrer';
+                
+                let htmlContent = '';
+                if (data.favicon) htmlContent += `<img class="lp-icon" src="${data.favicon}" alt="">`;
+                htmlContent += '<div class="lp-content">';
+                if (data.title) htmlContent += `<div class="lp-title">${data.title}</div>`;
+                
+                let domain = '';
+                try { domain = new URL(url).hostname.replace('www.', ''); } catch(e) {}
+                if (domain) htmlContent += `<div class="lp-domain">${domain}</div>`;
+                
+                htmlContent += '</div>';
+                card.innerHTML = htmlContent;
+                
+                placeholderEl.replaceWith(card);
+            } catch (e) {
+                console.log('Link preview error:', e);
+            }
         }
 
         async function addMessageToScreen(msg) {
@@ -1229,6 +1282,14 @@
 
             chatMessages.appendChild(row);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Активираме генерирането на преглед за линковете
+            if (displayText && !msg.file_url) {
+                row.querySelectorAll('.link-placeholder').forEach(ph => {
+                    const url = ph.getAttribute('data-url');
+                    fetchLinkPreview(url, ph);
+                });
+            }
         }
 
         async function loadMessages() {
