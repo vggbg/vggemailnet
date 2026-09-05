@@ -374,6 +374,7 @@
                 color: #222;
                 line-height: 1.35;
                 user-select: text;
+                white-space: pre-wrap;
             }
 
             /* Стилове за текстови линкове */
@@ -612,7 +613,7 @@
                 background: #ffffff;
                 border-top: 1px solid #eaeaea;
                 flex-shrink: 0;
-                align-items: center;
+                align-items: flex-end;
             }
             .input-action-btn {
                 background: none;
@@ -644,6 +645,11 @@
                 color: #222;
                 background: #f9f9f9;
                 outline: none;
+                resize: none;
+                max-height: 120px;
+                overflow-y: auto;
+                line-height: 1.4;
+                font-family: inherit;
             }
             .chat-input:focus {
                 border-color: #4d9de0;
@@ -973,14 +979,13 @@
                     <button class="input-action-btn" id="emojiBtn" title="Емоджита" type="button">😊</button>
                     <button class="input-action-btn" id="attachBtn" title="Прикачи файл" type="button">📎</button>
                     <button class="input-action-btn" id="cameraBtn" title="Камера" type="button">📷</button>
-                    <input
-                        type="text"
+                    <textarea
                         class="chat-input"
                         id="messageInput"
-                        placeholder="Напиши съобщение..."
-                        maxlength="500"
-                        autocomplete="off"
-                    />
+                        placeholder="Напиши съобщение... "
+                        maxlength="10000"
+                        rows="1"
+                    ></textarea>
                     <button class="send-btn" id="sendBtn" type="button">➤</button>
                 </div>
 
@@ -1637,6 +1642,7 @@
                 const emoji = event.detail.unicode;
                 messageInput.value += emoji;
                 messageInput.focus();
+                autoResizeTextarea();
                 emojiPickerWrapper.classList.remove("open");
             });
 
@@ -1738,7 +1744,7 @@
             function setReply(nick, text) {
                 replyTo = { nick, text };
                 replyBarNick.textContent = nick;
-                replyBarText.textContent = text.length > 60 ? text.substring(0, 60) + "..." : text;
+                replyBarText.textContent = text.length > 50 ? text.substring(0, 50) + "..." : text;
                 replyBar.style.display = "flex";
                 messageInput.focus();
             }
@@ -1771,6 +1777,12 @@
             function getTime(iso) {
                 const d = new Date(iso);
                 return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0");
+            }
+
+            // ФУНКЦИЯ ЗА АВТОМАТИЧНО УГОЛЕМЯВАНЕ НА ПОЛЕТО
+            function autoResizeTextarea() {
+                messageInput.style.height = 'auto';
+                messageInput.style.height = (messageInput.scrollHeight) + 'px';
             }
 
             // ФУНКЦИЯ ЗА ЛИНКОВЕ И YOUTUBE
@@ -1917,7 +1929,7 @@
                     const rt = document.createElement("span");
                     rt.className = "msg-reply-text";
                     rt.textContent =
-                        displayReplyText.length > 60 ? displayReplyText.substring(0, 60) + "..." : displayReplyText;
+                        displayReplyText.length > 50 ? displayReplyText.substring(0, 50) + "..." : displayReplyText;
                     rd.append(rn, rt);
                     row.appendChild(rd);
                 }
@@ -2077,6 +2089,7 @@
             }
 
             messageInput.addEventListener("input", () => {
+                autoResizeTextarea();
                 const now = Date.now();
                 if (now - lastTypingSent > 2000 && messageInput.value.trim() && realtimeChannel) {
                     lastTypingSent = now;
@@ -2089,6 +2102,7 @@
                 if (!text) return;
                 sendBtn.disabled = true;
                 messageInput.value = "";
+                messageInput.style.height = 'auto'; // Връщаме височината на полето
 
                 let finalText = text;
                 let finalReplyText = replyTo?.text || null;
@@ -2114,6 +2128,7 @@
                     if (error) {
                         showToast("Грешка при изпращане!");
                         messageInput.value = text;
+                        autoResizeTextarea();
                     } else if (data?.length) {
                         processedIds.add(data[0].id);
                         if (data[0].created_at && (!lastPollTimestamp || data[0].created_at > lastPollTimestamp)) {
@@ -2125,6 +2140,7 @@
                     console.error("Send error:", err);
                     showToast("Грешка при изпращане!");
                     messageInput.value = text;
+                    autoResizeTextarea();
                 }
 
                 sendBtn.disabled = false;
@@ -2133,8 +2149,13 @@
             }
 
             sendBtn.addEventListener("click", sendMessage);
-            messageInput.addEventListener("keypress", (e) => {
-                if (e.key === "Enter") sendMessage();
+            
+            // Shift + Enter за нов ред, Enter за изпращане
+            messageInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
             });
 
             window.addEventListener("beforeunload", () => {
