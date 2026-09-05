@@ -169,14 +169,14 @@
         
         .msg-text { font-size: 0.95rem; color: #222; line-height: 1.35; user-select: text; }
         
-        /* Стилове за текстови линкове (Остават същите) */
+        /* Стилове за текстови линкове */
         .msg-text a {
             color: #4d9de0; text-decoration: underline; word-break: break-word;
         }
         .message-row.self .msg-text a { color: #2980b9; }
         .msg-text a:hover { opacity: 0.8; }
         
-        /* НОВО: Стилове за YouTube преглед (голяма кликваема картинка) */
+        /* Стилове за YouTube преглед */
         .msg-youtube {
             display: block; position: relative; margin-top: 8px;
             border-radius: 8px; overflow: hidden; background: #000;
@@ -422,7 +422,7 @@
             </div>
 
             <div class="chat-footer" id="chatFooter" style="display: none; flex-wrap: wrap; gap: 5px 15px;">
-                <a id="footerDate" class="footer-link-btn" href="/chat/readme.html" target="_blank" rel="noopener noreferrer" title="За чата...">🌐 За чата...</a>
+                <a id="footerDate" class="footer-link-btn" href="/readme.html" target="_blank" rel="noopener noreferrer" title="За чата...">🌐 За чата...</a>
                 <div class="footer-actions">
                     <button class="footer-link-btn" id="linkBtn" type="button" title="Копирай връзка към стаята">🔗 Връзка</button>
                     <button class="footer-link-btn" id="embedBtn" type="button" title="Копирай код за вграждане">🛠️ Вграждане</button>
@@ -616,6 +616,31 @@
             toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2500);
         }
 
+        // Универсална функция за копиране, която работи дори в iframe
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            } else {
+                return new Promise((resolve, reject) => {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
+                    document.body.removeChild(textArea);
+                });
+            }
+        }
+
         async function checkTelegramStatus() {
             if (!roomId || !currentUser) return;
             try {
@@ -671,13 +696,13 @@
             
             const tgUrl = 'https://t.me/' + TG_BOT_USERNAME;
             
-            navigator.clipboard.writeText(command).then(() => {
-                showToast('📋 Командата е копирана. Отваряне на Telegram след 3 секунди...');
+            copyToClipboard(command).then(() => {
+                showToast('✅ Командата е копирана. Отваряне на Telegram след 3 секунди...');
                 setTimeout(() => {
                     window.open(tgUrl, '_blank');
                 }, 3000);
             }).catch(() => {
-                showToast('Отвори бота след 3 сек и изпрати: ' + command);
+                showToast('⚠️ Копирането не е успешно. Ръчно изпратете: ' + command);
                 setTimeout(() => {
                     window.open(tgUrl, '_blank');
                 }, 3000);
@@ -815,7 +840,7 @@
                     input.type = 'text';
                     const toggleBtn = document.querySelector('.toggle-pass-btn[data-target="pinCreateInput"]');
                     if (toggleBtn) toggleBtn.innerHTML = '<iconify-icon icon="mdi:eye-outline" width="20"></iconify-icon>';
-                    navigator.clipboard.writeText(pass).then(() => showToast('✅ Ключът е генериран и копиран!'));
+                    copyToClipboard(pass).then(() => showToast('✅ Ключът е генериран и копиран!'));
                 });
             }
 
@@ -955,12 +980,12 @@
 
         linkBtn.addEventListener('click', () => {
             const url = window.location.origin + window.location.pathname + '?room=' + roomId;
-            navigator.clipboard.writeText(url).then(() => showToast('✅ Връзката за споделяне е копирана!'));
+            copyToClipboard(url).then(() => showToast('✅ Връзката за споделяне е копирана!'));
         });
         
         embedBtn.addEventListener('click', () => {
             const url = window.location.origin + window.location.pathname + '?room=' + roomId;
-            navigator.clipboard.writeText('<iframe src="' + url + '" style="width:100%;height:600px;border:none;overflow:hidden;"></iframe>')
+            copyToClipboard('<iframe src="' + url + '" style="width:100%;height:600px;border:none;overflow:hidden;" allow="clipboard-write"></iframe>')
                 .then(() => showToast('✅ Кодът за вграждане е копиран!'));
         });
 
@@ -1092,7 +1117,7 @@
             return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
         }
 
-        // НОВА ФУНКЦИЯ ЗА ЛИНКОВЕ И YOUTUBE
+        // ФУНКЦИЯ ЗА ЛИНКОВЕ И YOUTUBE
         function formatMessageText(text) {
             // 1. Екранираме HTML за сигурност (предотвратява XSS)
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
@@ -1117,7 +1142,7 @@
                     // Връщаме голяма кликваема картинка (thumbnail) с бутон Play
                     return `<a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer" class="msg-youtube"><img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="YouTube Video"><div class="play-icon"></div></a>`;
                 } else {
-                    // Ако не е YouTube, правим нормален кликваем линк (СЪЩОТО КАТО ПРЕДИ)
+                    // Ако не е YouTube, правим нормален кликваем линк
                     return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>`;
                 }
             });
@@ -1191,7 +1216,6 @@
                 row.appendChild(a);
             }
 
-            // Използваме функцията за визуализация на текста
             if (displayText && !msg.file_url) {
                 const td = document.createElement('div');
                 td.className = 'msg-text';
