@@ -31,6 +31,7 @@
             }
             html {
                 height: 100%;
+                height: -webkit-fill-available;
             }
             body {
                 background: #ffffff;
@@ -39,6 +40,7 @@
                 align-items: center;
                 padding: 40px 20px;
                 height: 100%;
+                height: -webkit-fill-available;
                 overflow: hidden;
             }
             body.is-iframe {
@@ -842,14 +844,20 @@
                 }
             }
 
-            @media (max-width: 480px) {
+            /* ПРОМЯНА ТУК: Добавено (max-height: 480px) и min-height: 0 !important */
+            @media (max-width: 480px), (max-height: 480px) {
                 body {
                     padding: 0;
                     align-items: flex-start;
+                    padding-left: env(safe-area-inset-left, 0px);
+                    padding-right: env(safe-area-inset-right, 0px);
+                    height: 100%;
+                    height: -webkit-fill-available;
                 }
                 .container {
                     height: 100dvh;
                     max-height: none;
+                    min-height: 0 !important; /* Позволява контейнерът да се смали под 400px в пейзажен режим */
                     border-radius: 0;
                     border: none;
                     box-shadow: none;
@@ -924,7 +932,7 @@
             }
 
             @supports not (height: 100dvh) {
-                @media (max-width: 480px) {
+                @media (max-width: 480px), (max-height: 480px) {
                     .container {
                         height: 100vh;
                         height: -webkit-fill-available;
@@ -2164,7 +2172,8 @@
                 stopPolling();
             });
 
-            if (window.self !== window.top) {
+            const isIframe = window.self !== window.top;
+            if (isIframe) {
                 document.body.classList.add("is-iframe");
                 const c = document.querySelector(".container");
                 c.style.height = "100dvh";
@@ -2173,6 +2182,35 @@
                 c.style.border = "none";
                 c.style.boxShadow = "none";
             }
+
+            // --- FIX за мобилни браузъри (пейзажен режим и клавиатура) ---
+            function adjustMobileViewport() {
+                if (isIframe) return; // Ифреймите се управляват от CSS
+                
+                const isMobile = window.matchMedia("(max-width: 480px), (max-height: 480px)").matches;
+                const container = document.querySelector('.container');
+                if (!container) return;
+
+                if (isMobile && window.visualViewport) {
+                    container.style.minHeight = '0'; // ВАЖНО: Премахва ограничението от 400px
+                    container.style.height = window.visualViewport.height + 'px';
+                } else {
+                    container.style.minHeight = ''; // Връща го обратно за десктоп
+                    container.style.height = '';
+                }
+            }
+
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', adjustMobileViewport);
+            }
+
+            window.addEventListener('resize', adjustMobileViewport);
+            window.addEventListener('orientationchange', () => {
+                setTimeout(adjustMobileViewport, 250);
+            });
+
+            adjustMobileViewport();
+            // --------------------------------
 
             if (document.readyState === "loading") {
                 document.addEventListener("DOMContentLoaded", initApp);
