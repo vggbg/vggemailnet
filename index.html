@@ -101,7 +101,7 @@
          #location-input {
          font-family: "Arsenal", sans-serif;
          }
-         /* ===== МОДАЛ ЗА КОНТАКТНА ФОРМА ===== */
+         /* ===== МОДАЛ ЗА КОНТАКТНА ФОРМА И ЧАТ ===== */
          .modal-overlay {
          display: none;
          position: fixed;
@@ -204,12 +204,13 @@
          padding: 10px 0;
          z-index: 99;
          }
-         .footer a {
+         .footer a, .footer span.link-like {
          color: #007bff;
          text-decoration: none;
          margin: 0 10px;
+         cursor: pointer;
          }
-         .footer a:hover {
+         .footer a:hover, .footer span.link-like:hover {
          text-decoration: underline;
          }
          .email-label,
@@ -328,7 +329,7 @@
          height: auto;
          padding: 8px 5px;
          }
-         .footer a {
+         .footer a, .footer span.link-like {
          margin: 0 5px;
          }
          .modal.contact-modal {
@@ -375,6 +376,19 @@
             <iframe id="contactIframe" src="about:blank" style="width:100%; height:660px; border:none; border-radius:12px; background:#fff;"></iframe>
             <div class="modal-actions">
                <button class="btn btn-outline" onclick="closeContactModal()">Затвори</button>
+            </div>
+         </div>
+      </div>
+
+      <!-- ===== МОДАЛ ЗА ЧАТ (НОВ) ===== -->
+      <div class="modal-overlay" id="chatModal">
+         <div class="modal contact-modal">
+            <h2>Коментари</h2>
+            <div style="width:100%; max-width:100%; overflow:hidden; border-radius:12px;">
+                <iframe id="chatIframe" src="about:blank" style="width:100%; height:600px; border:none; overflow:hidden; background:#fff;" allow="clipboard-write"></iframe>
+            </div>
+            <div class="modal-actions">
+               <button class="btn btn-outline" onclick="closeChatModal()">Затвори</button>
             </div>
          </div>
       </div>
@@ -609,8 +623,9 @@
          setInterval(() => getWeather(defaultCity), 15 * 60 * 1000);
       </script>
 
-      <!-- ===== ФУНКЦИИ ЗА КОНТАКТНАТА ФОРМА ===== -->
+      <!-- ===== ФУНКЦИИ ЗА КОНТАКТНАТА ФОРМА И ЧАТ МОДАЛА ===== -->
       <script type="text/javascript">
+         // Контактна форма
          function openContactModal() {
              const modal = document.getElementById('contactModal');
              const iframe = document.getElementById('contactIframe');
@@ -626,25 +641,51 @@
              document.getElementById('contactIframe').src = 'about:blank';
          }
 
+         // Чат модал
+         function openChatModal() {
+             const modal = document.getElementById('chatModal');
+             const iframe = document.getElementById('chatIframe');
+             iframe.src = 'https://vggemail.net/chat/?room=comments';
+             modal.classList.add('active');
+             document.body.style.overflow = 'hidden';
+         }
+
+         function closeChatModal() {
+             const modal = document.getElementById('chatModal');
+             modal.classList.remove('active');
+             document.body.style.overflow = '';
+             document.getElementById('chatIframe').src = 'about:blank';
+         }
+
+         // Затваряне при клик върху overlay
          document.addEventListener('DOMContentLoaded', function() {
              const contactModal = document.getElementById('contactModal');
+             const chatModal = document.getElementById('chatModal');
+             
              if (contactModal) {
                  contactModal.addEventListener('click', function(e) {
                      if (e.target === this) closeContactModal();
                  });
              }
+             if (chatModal) {
+                 chatModal.addEventListener('click', function(e) {
+                     if (e.target === this) closeChatModal();
+                 });
+             }
          });
 
+         // Затваряне с ESC
          document.addEventListener('keydown', function(e) {
              if (e.key === 'Escape') {
                  closeContactModal();
+                 closeChatModal();
              }
          });
       </script>
 
       <div class="footer">
          <a href="#" onclick="openContactModal(); return false;" style="color: #424242;">контактна форма</a>
-         | <a href="https://1246.3cx.cloud/LiveChat826231" style="color: #424242;" target="_blank">съобщение/разговор</a> |
+         | <span class="link-like" onclick="openChatModal();" style="color: #424242;">коментари</span> |
          <a href="https://t.me/+7_XRl0bzOYFlMWVk" style="color: #424242;" target="_blank">telegram</a> <br />
          vggemail.net ✔️
          <script>
