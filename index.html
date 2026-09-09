@@ -383,10 +383,14 @@
       <!-- ===== МОДАЛ ЗА ЧАТ (НОВ) ===== -->
       <div class="modal-overlay" id="chatModal">
          <div class="modal contact-modal">
-            <h2>Коментари</h2>
-            <div style="width:100%; max-width:100%; overflow:hidden; border-radius:12px;">
-                <iframe id="chatIframe" src="about:blank" style="width:100%; height:600px; border:none; overflow:hidden; background:#fff;" allow="clipboard-write"></iframe>
+            <!-- Намаляваме разстоянието отдолу на 5px (изначало е било 20px) -->
+            <h2 style="margin-bottom: 0px;">Коментари</h2>
+            
+            <div style="width:100%; max-width:100%; overflow:hidden; border-radius:12px; line-height: 0;">
+                <!-- Увеличаваме височината на фрейма от 600px на 615px, за да компенсираме премахнатите 15 пиксела разстояние. Също така display:block премахва базовото разстояние на iframe -->
+                <iframe id="chatIframe" src="about:blank" style="width:100%; height:615px; border:none; overflow:hidden; background:#fff; display:block;" allow="clipboard-write"></iframe>
             </div>
+            
             <div class="modal-actions">
                <button class="btn btn-outline" onclick="closeChatModal()">Затвори</button>
             </div>
