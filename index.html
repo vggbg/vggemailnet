@@ -270,6 +270,13 @@
          font-size: 14px;
          color: #555;
          }
+         /* Бутон "Провери времето" – същият циан като контактната форма и чат балона */
+         #weather-widget #check-weather {
+         transition: background-color 0.2s ease;
+         }
+         #weather-widget #check-weather:hover {
+         background-color: #0fb2ba !important;
+         }
          /* ===== СТИЛ ЗА КАРТИНКАТА - САМО КАРТИНКА ===== */
          .login-icon {
          display: inline-block;
@@ -455,7 +462,7 @@
                  <div id="weather-animation" style="font-size: 50px; width: 150px; height: auto; margin: 10px auto;"></div>
                  <p id="feels-like" style="margin: 5px 0; color: #555;"></p>
                  <input id="location-input" type="text" placeholder="Въведи град" style="width: 90%; padding: 8px; margin-top: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: 'Arsenal', sans-serif;">
-                 <button id="check-weather" style="margin-top: 10px; padding: 10px; border: none; border-radius: 5px; background-color: #ea5737; color: white; cursor: pointer; font-family: 'Arsenal', sans-serif; width: 100%;">Провери времето</button>
+                 <button id="check-weather" style="margin-top: 10px; padding: 10px; border: none; border-radius: 5px; background-color: #35e7ef; color: #06393d; cursor: pointer; font-family: 'Arsenal', sans-serif; width: 100%; box-shadow: 0 4px 10px rgba(53, 231, 239, 0.35);">Провери времето</button>
              </div>
          `;
 
@@ -620,7 +627,7 @@
 
          const locationInput = document.getElementById("location-input");
          locationInput.addEventListener("focus", () => {
-             locationInput.style.boxShadow = "0 0 10px rgba(234, 87, 55, 0.8)";
+             locationInput.style.boxShadow = "0 0 10px rgba(53, 231, 239, 0.8)";
          });
          locationInput.addEventListener("blur", () => {
              locationInput.style.boxShadow = "0 0 5px rgba(53, 174, 255, 0.5)";
