@@ -233,12 +233,12 @@
          resize: both;
          overflow: hidden;
          z-index: 100;
-         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 
+         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15),
                      0 8px 40px rgba(0, 0, 0, 0.10);
          transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
          }
          #weather-widget:hover {
-         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25), 
+         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25),
                      0 12px 50px rgba(0, 0, 0, 0.20);
          }
          #weather-widget #weather-content {
@@ -373,7 +373,10 @@
       <div class="modal-overlay" id="contactModal">
          <div class="modal contact-modal">
             <h2>Формуляр за Контакт</h2>
-            <iframe id="contactIframe" src="about:blank" style="width:100%; height:660px; border:none; border-radius:12px; background:#fff;"></iframe>
+            <!-- Собствената форма (Vercel). Началната височина вече е 430px (както на страницата,
+                 където се визуализира най-добре), а при зареждане формата сама изпраща точната си
+                 височина (cfw:resize) и iframe се преоразмерява – без излишно празно място отдолу. -->
+            <iframe id="contactIframe" src="about:blank" style="width:100%; height:430px; border:none; border-radius:12px; background:#fff;" title="Формуляр за контакт"></iframe>
             <div class="modal-actions">
                <button class="btn btn-outline" onclick="closeContactModal()">Затвори</button>
             </div>
@@ -385,12 +388,12 @@
          <div class="modal contact-modal">
             <!-- Намаляваме разстоянието отдолу на 5px (изначало е било 20px) -->
             <h2 style="margin-bottom: 0px;">Коментари</h2>
-            
+
             <div style="width:100%; max-width:100%; overflow:hidden; border-radius:12px; line-height: 0;">
                 <!-- Увеличаваме височината на фрейма от 600px на 615px, за да компенсираме премахнатите 15 пиксела разстояние. Също така display:block премахва базовото разстояние на iframe -->
                 <iframe id="chatIframe" src="about:blank" style="width:100%; height:615px; border:none; overflow:hidden; background:#fff; display:block;" allow="clipboard-write"></iframe>
             </div>
-            
+
             <div class="modal-actions">
                <button class="btn btn-outline" onclick="closeChatModal()">Затвори</button>
             </div>
@@ -401,17 +404,17 @@
       <a href="https://mail.vggemail.net" class="login-icon">
          <img src="email.png" alt="Вход в пощата" width="128" height="128">
       </a>
-      
+
       <script type="text/javascript">
          const workerUrl = "https://weather.vggbg.workers.dev/";
          const defaultCity = "София, България";
-         
+
          const widget = document.createElement("div");
          widget.id = "weather-widget";
-         
+
          const isMobile = window.innerWidth <= 768;
          const widgetWidth = isMobile ? 260 : 150;
-         
+
          widget.style.width = widgetWidth + "px";
          widget.style.backgroundColor = "#ffffff";
          widget.style.borderRadius = "12px";
@@ -426,7 +429,7 @@
          widget.style.overflowY = "auto";
          widget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.15), 0 8px 40px rgba(0, 0, 0, 0.10)";
          widget.style.transition = "box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
-         
+
          // Задаваме първоначалната позиция на уиджета - точно под картинката
          setTimeout(() => {
              const icon = document.querySelector('.login-icon');
@@ -441,9 +444,9 @@
                  widget.style.transform = "translate(-50%, -50%)";
              }
          }, 50);
-         
+
          document.body.appendChild(widget);
-         
+
          widget.innerHTML = `
              <div id="weather-content" style="text-align: center; position: relative;">
                  <button id="close-widget" style="position: absolute; top: 5px; right: 5px; border: none; background-color: transparent; cursor: pointer; font-size: 18px;">&#10005;</button>
@@ -455,28 +458,28 @@
                  <button id="check-weather" style="margin-top: 10px; padding: 10px; border: none; border-radius: 5px; background-color: #ea5737; color: white; cursor: pointer; font-family: 'Arsenal', sans-serif; width: 100%;">Провери времето</button>
              </div>
          `;
-         
+
          // Hover ефект само върху сянката на уиджета
          widget.addEventListener("mouseenter", () => {
              widget.style.boxShadow = "0 8px 30px rgba(0, 0, 0, 0.25), 0 12px 50px rgba(0, 0, 0, 0.20)";
          });
-         
+
          widget.addEventListener("mouseleave", () => {
              widget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.15), 0 8px 40px rgba(0, 0, 0, 0.10)";
          });
-         
+
          document.getElementById("close-widget").addEventListener("click", () => widget.remove());
-         
+
          document.addEventListener("keydown", (e) => {
              if (e.key === "Escape" && document.getElementById("weather-widget")) {
                  widget.remove();
              }
          });
-         
+
          const animationMapping = {
-             "01d": "☀️", 
-             "01n": "🌙", 
-             "02d": "⛅", 
+             "01d": "☀️",
+             "01n": "🌙",
+             "02d": "⛅",
              "02n": "🌤",
              "03d": "☁️",
              "03n": "☁️",
@@ -491,27 +494,27 @@
              "50d": "🌫️",
              "50n": "🌫️",
          };
-         
+
          async function getWeather(city) {
              try {
                  const response = await fetch(`${workerUrl}?city=${encodeURIComponent(city)}`);
                  if (!response.ok) throw new Error("Неуспешно зареждане");
                  const data = await response.json();
-         
+
                  document.getElementById("city").innerText = data.name;
                  document.getElementById("temperature").innerHTML = `В момента е: <strong>${data.main.temp}°C</strong>`;
-         
+
                  const weatherAnimation = animationMapping[data.weather[0].icon] || "⛅";
                  const animationDiv = document.getElementById("weather-animation");
                  animationDiv.innerHTML = weatherAnimation;
-         
+
                  document.getElementById("feels-like").innerHTML = `Чувство: <strong>${data.main.feels_like}°C</strong>`;
              } catch (error) {
                  document.getElementById("city").innerText = "Грешка при зареждане!";
                  console.error(error);
              }
          }
-         
+
          function getLocation() {
              if (navigator.geolocation) {
                  navigator.geolocation.getCurrentPosition(
@@ -523,11 +526,11 @@
                              .then((data) => {
                                  document.getElementById("city").innerText = data.name;
                                  document.getElementById("temperature").innerHTML = `В момента е: <strong>${data.main.temp}°C</strong>`;
-         
+
                                  const weatherAnimation = animationMapping[data.weather[0].icon] || "⛅";
                                  const animationDiv = document.getElementById("weather-animation");
                                  animationDiv.innerHTML = weatherAnimation;
-         
+
                                  document.getElementById("feels-like").innerHTML = `Чувство: <strong>${data.main.feels_like}°C</strong>`;
                              })
                              .catch(() => getWeather(defaultCity));
@@ -538,11 +541,11 @@
                  getWeather(defaultCity);
              }
          }
-         
+
          let isDragging = false;
          let dragOffsetX = 0;
          let dragOffsetY = 0;
-         
+
          widget.addEventListener("mousedown", (e) => {
              if (e.target.closest("button") || e.target.tagName === "INPUT") return;
              isDragging = true;
@@ -552,24 +555,24 @@
              widget.style.cursor = "grabbing";
              e.preventDefault();
          });
-         
+
          document.addEventListener("mousemove", (e) => {
              if (!isDragging) return;
              widget.style.left = (e.clientX - dragOffsetX) + "px";
              widget.style.top = (e.clientY - dragOffsetY) + "px";
              widget.style.transform = "none";
          });
-         
+
          document.addEventListener("mouseup", () => {
              if (isDragging) {
                  isDragging = false;
                  widget.style.cursor = "move";
              }
          });
-         
+
          let touchOffsetX = 0, touchOffsetY = 0;
          let isTouchDragging = false;
-         
+
          widget.addEventListener("touchstart", (e) => {
              if (e.target.closest("button") || e.target.tagName === "INPUT") return;
              const touch = e.touches[0];
@@ -580,7 +583,7 @@
              isTouchDragging = true;
              widget.style.transform = "none";
          }, { passive: true });
-         
+
          document.addEventListener("touchmove", (e) => {
              if (!isTouchDragging) return;
              const touch = e.touches[0];
@@ -589,7 +592,7 @@
              widget.style.top = (touch.clientY - touchOffsetY) + "px";
              e.preventDefault();
          }, { passive: false });
-         
+
          document.addEventListener("touchend", () => {
              if (isTouchDragging) {
                  isTouchDragging = false;
@@ -597,9 +600,9 @@
                  touchOffsetY = 0;
              }
          }, { passive: true });
-         
+
          widget.ondragstart = () => false;
-         
+
          document.getElementById("check-weather").addEventListener("click", () => {
              const city = document.getElementById("location-input").value.trim();
              if (city) {
@@ -608,13 +611,13 @@
                  alert("Моля, въведете валидно местоположение!");
              }
          });
-         
+
          document.getElementById("location-input").addEventListener("keydown", (e) => {
              if (e.key === "Enter") {
                  document.getElementById("check-weather").click();
              }
          });
-         
+
          const locationInput = document.getElementById("location-input");
          locationInput.addEventListener("focus", () => {
              locationInput.style.boxShadow = "0 0 10px rgba(234, 87, 55, 0.8)";
@@ -622,18 +625,18 @@
          locationInput.addEventListener("blur", () => {
              locationInput.style.boxShadow = "0 0 5px rgba(53, 174, 255, 0.5)";
          });
-         
+
          getLocation();
          setInterval(() => getWeather(defaultCity), 15 * 60 * 1000);
       </script>
 
       <!-- ===== ФУНКЦИИ ЗА КОНТАКТНАТА ФОРМА И ЧАТ МОДАЛА ===== -->
       <script type="text/javascript">
-         // Контактна форма
+         // Контактна форма (собствената форма, хоствана на Vercel)
          function openContactModal() {
              const modal = document.getElementById('contactModal');
              const iframe = document.getElementById('contactIframe');
-             iframe.src = 'https://forms.zohopublic.com/virtualoffice6913/form/ContactForm1/formperma/bJ2K6HfG3130MM7bMkB628053';
+             iframe.src = 'https://kf-gilt.vercel.app/';
              modal.classList.add('active');
              document.body.style.overflow = 'hidden';
          }
@@ -642,8 +645,20 @@
              const modal = document.getElementById('contactModal');
              modal.classList.remove('active');
              document.body.style.overflow = '';
-             document.getElementById('contactIframe').src = 'about:blank';
+             const iframe = document.getElementById('contactIframe');
+             iframe.src = 'about:blank';
+             // Връщаме началната височина, за да не остане празно място при следващо отваряне
+             iframe.style.height = '430px';
          }
+
+         // Формата съобщава затваряне и точната си височина (без излишен скрол и празно място отдолу)
+         window.addEventListener('message', function(e) {
+             if (!e.data || typeof e.data.type !== 'string') return;
+             if (e.data.type === 'cfw:close') closeContactModal();
+             if (e.data.type === 'cfw:resize' && e.data.height) {
+                 document.getElementById('contactIframe').style.height = (e.data.height + 20) + 'px';
+             }
+         });
 
          // Чат модал
          function openChatModal() {
@@ -665,7 +680,7 @@
          document.addEventListener('DOMContentLoaded', function() {
              const contactModal = document.getElementById('contactModal');
              const chatModal = document.getElementById('chatModal');
-             
+
              if (contactModal) {
                  contactModal.addEventListener('click', function(e) {
                      if (e.target === this) closeContactModal();
@@ -697,23 +712,11 @@
             const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
             document.write(today.toLocaleDateString("bg-BG", options));
          </script>
-         <script type="text/javascript">
-            var init = function () {
-                document.getElementById("user").value = "";
-                document.getElementById("pass").value = "";
-                document.getElementById("user").focus();
-            };
-            if (window.addEventListener) {
-                window.addEventListener("load", init, false);
-            } else if (document.addEventListener) {
-                document.addEventListener("load", init, false);
-            }
-         </script>
       </div>
-      
+
       <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"965aa54f483cd101","version":"2025.7.0","r":1,"token":"27c14415f8664bc399250fac7f8899ea","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}}}' crossorigin="anonymous"></script>
       <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"27c14415f8664bc399250fac7f8899ea","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-      
+
       <call-us-selector phonesystem-url="https://1246.3cx.cloud" party="LiveChat826231"></call-us-selector>
       <script defer src="https://downloads-global.3cx.com/downloads/livechatandtalk/v1/callus.js" id="tcx-callus-js" charset="utf-8"></script>
    <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"27c14415f8664bc399250fac7f8899ea","r":1}' crossorigin="anonymous"></script>
