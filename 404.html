@@ -157,21 +157,21 @@
          border: 2px solid rgba(255,255,255,0.6);
          cursor: pointer;
          }
-         .dot.purple { 
-         background: linear-gradient(135deg, #8e44ad, #a569bd); 
-         box-shadow: 0 4px 15px rgba(142, 68, 173, 0.25); 
+         .dot.purple {
+         background: linear-gradient(135deg, #8e44ad, #a569bd);
+         box-shadow: 0 4px 15px rgba(142, 68, 173, 0.25);
          }
-         .dot.red { 
-         background: linear-gradient(135deg, #e74c3c, #ec7063); 
-         box-shadow: 0 4px 15px rgba(231, 76, 60, 0.25); 
+         .dot.red {
+         background: linear-gradient(135deg, #e74c3c, #ec7063);
+         box-shadow: 0 4px 15px rgba(231, 76, 60, 0.25);
          }
-         .dot.orange { 
-         background: linear-gradient(135deg, #f39c12, #f7b731); 
-         box-shadow: 0 4px 15px rgba(243, 156, 18, 0.25); 
+         .dot.orange {
+         background: linear-gradient(135deg, #f39c12, #f7b731);
+         box-shadow: 0 4px 15px rgba(243, 156, 18, 0.25);
          }
-         .dot.cyan { 
-         background: linear-gradient(135deg, #0de6fc, #4ef0ff); 
-         box-shadow: 0 4px 15px rgba(13, 230, 252, 0.25); 
+         .dot.cyan {
+         background: linear-gradient(135deg, #0de6fc, #4ef0ff);
+         box-shadow: 0 4px 15px rgba(13, 230, 252, 0.25);
          }
          .dot:hover {
          transform: scale(1.25) rotate(8deg);
@@ -333,13 +333,13 @@
          }
          @media (max-width: 768px) {
          .error-number { font-size: 8rem; }
-         .time-message { 
-         font-size: 1.8rem; 
+         .time-message {
+         font-size: 1.8rem;
          min-height: 60px;
          padding: 0 15px;
          }
-         .text-container { 
-         max-width: 94%; 
+         .text-container {
+         max-width: 94%;
          padding: 25px 20px 30px 20px;
          margin: 0 10px;
          }
@@ -360,14 +360,14 @@
          }
          @media (max-width: 480px) {
          .error-number { font-size: 5.5rem; }
-         .time-message { 
-         font-size: 1.4rem; 
+         .time-message {
+         font-size: 1.4rem;
          min-height: 50px;
          padding: 0 10px;
          line-height: 1.3;
          }
-         .text-container { 
-         max-width: 96%; 
+         .text-container {
+         max-width: 96%;
          padding: 20px 15px 25px 15px;
          margin: 0 8px;
          border-radius: 20px;
@@ -380,8 +380,8 @@
          }
          }
          @media (max-width: 360px) {
-         .time-message { 
-         font-size: 1.2rem; 
+         .time-message {
+         font-size: 1.2rem;
          min-height: 42px;
          }
          .error-number { font-size: 4.5rem; }
@@ -397,12 +397,15 @@
 
       <div id="particles-js"></div>
       <div class="background"></div>
-      
+
       <!-- ===== МОДАЛ ЗА КОНТАКТНА ФОРМА ===== -->
       <div class="modal-overlay" id="contactModal">
          <div class="modal contact-modal">
             <h2>Формуляр за Контакт</h2>
-            <iframe id="contactIframe" src="about:blank" style="width:100%; height:660px; border:none; border-radius:12px; background:#fff;"></iframe>
+            <!-- Собствената форма (Vercel). Началната височина вече е 430px (както на страницата,
+                 където се визуализира най-добре), а при зареждане формата сама изпраща точната си
+                 височина (cfw:resize) и iframe се преоразмерява – без излишно празно място отдолу. -->
+            <iframe id="contactIframe" src="about:blank" style="width:100%; height:430px; border:none; border-radius:12px; background:#fff;" title="Формуляр за контакт"></iframe>
             <div class="modal-actions">
                <button class="btn btn-outline" onclick="closeContactModal()">Затвори</button>
             </div>
@@ -414,18 +417,18 @@
          <div class="modal contact-modal">
             <!-- Намаляваме разстоянието отдолу на 5px (изначало е било 20px) -->
             <h2 style="margin-bottom: 0px;">Коментари</h2>
-            
+
             <div style="width:100%; max-width:100%; overflow:hidden; border-radius:12px; line-height: 0;">
                 <!-- Увеличаваме височината на фрейма от 600px на 615px, за да компенсираме премахнатите 15 пиксела разстояние. Също така display:block премахва базовото разстояние на iframe -->
                 <iframe id="chatIframe" src="about:blank" style="width:100%; height:615px; border:none; overflow:hidden; background:#fff; display:block;" allow="clipboard-write"></iframe>
             </div>
-            
+
             <div class="modal-actions">
                <button class="btn btn-outline" onclick="closeChatModal()">Затвори</button>
             </div>
          </div>
       </div>
-      
+
       <div class="text-container">
          <div class="error-number">404</div>
          <div class="time-message" id="time-message"></div>
@@ -439,28 +442,28 @@
             <!-- Инструкция за точките -->
          </div>
       </div>
-      
+
       <div class="footer">
          <a href="#" onclick="openContactModal(); return false;">
             <i class="fas fa-envelope"></i> контактна форма
          </a>
-         | 
+         |
          <span class="link-like" onclick="openChatModal();">
             <i class="fas fa-comments"></i> коментари
-         </span> 
-         | 
+         </span>
+         |
          <a href="https://t.me/+7_XRl0bzOYFlMWVk" target="_blank">
             <i class="fab fa-telegram"></i> telegram
          </a>
       </div>
-      
+
       <!-- ===== ФУНКЦИИ ЗА КОНТАКТНАТА ФОРМА И ЧАТ МОДАЛА ===== -->
       <script type="text/javascript">
-         // Контактна форма
+         // Контактна форма (собствената форма, хоствана на Vercel)
          function openContactModal() {
              const modal = document.getElementById('contactModal');
              const iframe = document.getElementById('contactIframe');
-             iframe.src = 'https://forms.zohopublic.com/virtualoffice6913/form/ContactForm1/formperma/bJ2K6HfG3130MM7bMkB628053';
+             iframe.src = 'https://kf-gilt.vercel.app/';
              modal.classList.add('active');
              document.body.style.overflow = 'hidden';
          }
@@ -469,8 +472,20 @@
              const modal = document.getElementById('contactModal');
              modal.classList.remove('active');
              document.body.style.overflow = '';
-             document.getElementById('contactIframe').src = 'about:blank';
+             const iframe = document.getElementById('contactIframe');
+             iframe.src = 'about:blank';
+             // Връщаме началната височина, за да не остане празно място при следващо отваряне
+             iframe.style.height = '430px';
          }
+
+         // Формата съобщава затваряне и точната си височина (без излишен скрол и празно място отдолу)
+         window.addEventListener('message', function(e) {
+             if (!e.data || typeof e.data.type !== 'string') return;
+             if (e.data.type === 'cfw:close') closeContactModal();
+             if (e.data.type === 'cfw:resize' && e.data.height) {
+                 document.getElementById('contactIframe').style.height = (e.data.height + 20) + 'px';
+             }
+         });
 
          // Чат модал
          function openChatModal() {
@@ -492,7 +507,7 @@
          document.addEventListener('DOMContentLoaded', function() {
              const contactModal = document.getElementById('contactModal');
              const chatModal = document.getElementById('chatModal');
-             
+
              if (contactModal) {
                  contactModal.addEventListener('click', function(e) {
                      if (e.target === this) closeContactModal();
@@ -533,7 +548,7 @@
              }
          });
       </script>
-      
+
       <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
       <script>
          document.addEventListener('DOMContentLoaded', function() {
@@ -570,25 +585,25 @@
                  },
                  retina_detect: true
              });
-         
+
              setMessageByTime();
              setupInteractiveDots();
              // Великденското яйце е ПРЕМАХНАТО
          });
-         
+
          function setMessageByTime() {
              const hour = new Date().getHours();
              const messageElement = document.getElementById('time-message');
-             
+
              const userLang = navigator.language || navigator.userLanguage;
              const langCode = userLang.substring(0, 2).toLowerCase();
              const isChinese = userLang.includes('zh') || langCode === 'zh';
-             
+
              let currentLang = 'en';
              if (langCode === 'bg') currentLang = 'bg';
              else if (langCode === 'ru') currentLang = 'ru';
              else if (isChinese) currentLang = 'zh';
-             
+
              const timeMessages = {
                  bg: {
                      night: "🌙 Дори в полумрака не можем да намерим търсената страница...",
@@ -615,31 +630,31 @@
                      evening: "🌟 连星星都找不到您要找的页面..."
                  }
              };
-             
+
              let timeOfDay = 'afternoon';
-             
+
              if (hour >= 0 && hour < 6) timeOfDay = 'night';
              else if (hour >= 6 && hour < 12) timeOfDay = 'morning';
              else if (hour >= 12 && hour < 18) timeOfDay = 'afternoon';
              else timeOfDay = 'evening';
-             
+
              messageElement.textContent = timeMessages[currentLang][timeOfDay];
          }
-         
+
          function setupInteractiveDots() {
              const dots = document.querySelectorAll('.dot');
              const messageElement = document.getElementById('interactive-message');
              let connectedCount = 0;
-             
+
              const userLang = navigator.language || navigator.userLanguage;
              const langCode = userLang.substring(0, 2).toLowerCase();
              const isChinese = userLang.includes('zh') || langCode === 'zh';
-             
+
              let currentLang = 'en';
              if (langCode === 'bg') currentLang = 'bg';
              else if (langCode === 'ru') currentLang = 'ru';
              else if (isChinese) currentLang = 'zh';
-             
+
              const interactiveMessages = {
                  bg: {
                      start: "🌸 Цъкни върху точките, за да ги свържеш",
@@ -670,18 +685,18 @@
                      complete: "✅ 所有圆点已连接！但页面仍然丢失..."
                  }
              };
-             
+
              messageElement.textContent = interactiveMessages[currentLang].start;
-             
+
              dots.forEach(dot => {
                  dot.addEventListener('click', function() {
                      if (!this.classList.contains('connected')) {
                          this.classList.add('connected');
                          connectedCount++;
-                         
+
                          const color = this.getAttribute('data-color');
                          this.style.boxShadow = `0 0 40px ${getColorHex(color)}, 0 0 80px ${getColorHex(color)}40`;
-                         
+
                          if (connectedCount === 1) {
                              messageElement.textContent = interactiveMessages[currentLang].progress1;
                              messageElement.style.color = getColorHex(color);
@@ -695,7 +710,7 @@
                              messageElement.textContent = interactiveMessages[currentLang].complete;
                              messageElement.style.color = '#8e44ad';
                              messageElement.style.textShadow = '0 0 20px rgba(142, 68, 173, 0.15)';
-                             
+
                              setTimeout(() => {
                                  document.querySelector('.text-container').style.animation = 'rainbow-border 1s 3';
                              }, 300);
@@ -703,7 +718,7 @@
                      }
                  });
              });
-             
+
              function getColorHex(colorName) {
                  const colors = {
                      purple: '#8e44ad',
@@ -714,11 +729,11 @@
                  return colors[colorName] || '#4a4a6a';
              }
          }
-         
+
          // Функцията setupEasterEgg() е ПРЕМАХНАТА
       </script>
       <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"9a7c6429ef01c9c4","version":"2025.9.1","r":1,"token":"27c14415f8664bc399250fac7f8899ea","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}}}' crossorigin="anonymous"></script>
-      
+
       <call-us-selector phonesystem-url="https://1246.3cx.cloud" party="LiveChat826231"></call-us-selector>
       <script defer src="https://downloads-global.3cx.com/downloads/livechatandtalk/v1/callus.js" id="tcx-callus-js" charset="utf-8"></script>
    </body>
